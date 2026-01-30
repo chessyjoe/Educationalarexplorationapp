@@ -1,0 +1,250 @@
+import { useState } from 'react';
+import { motion } from 'motion/react';
+import { ArrowLeft, Grid3x3, Palette, MapPin, Calendar, Sparkles, Trophy } from 'lucide-react';
+import { Button } from './ui/button';
+import { Badge } from './ui/badge';
+import { Tabs, TabsList, TabsTrigger } from './ui/tabs';
+import type { Discovery, SortMode, UserProfile } from '@/app/types';
+import { ImageWithFallback } from '@/app/components/figma/ImageWithFallback';
+
+interface CuriosityBoardProps {
+  profile: UserProfile;
+  onBack: () => void;
+  onCardClick: (discovery: Discovery) => void;
+}
+
+export function CuriosityBoard({ profile, onBack, onCardClick }: CuriosityBoardProps) {
+  const [sortMode, setSortMode] = useState<SortMode>('date');
+  const [showBadges, setShowBadges] = useState(false);
+
+  const sortDiscoveries = (discoveries: Discovery[], mode: SortMode): Discovery[] => {
+    const sorted = [...discoveries];
+    
+    switch (mode) {
+      case 'type':
+        return sorted.sort((a, b) => a.category.localeCompare(b.category));
+      case 'color':
+        return sorted.sort((a, b) => a.color.localeCompare(b.color));
+      case 'habitat':
+        return sorted.sort((a, b) => a.habitat.localeCompare(b.habitat));
+      case 'date':
+        return sorted.sort((a, b) => b.discoveredAt.getTime() - a.discoveredAt.getTime());
+      default:
+        return sorted;
+    }
+  };
+
+  const sortedDiscoveries = sortDiscoveries(profile.discoveries, sortMode);
+
+  const getColorBadgeColor = (color: string): string => {
+    const colorMap: Record<string, string> = {
+      red: 'bg-red-500',
+      orange: 'bg-orange-500',
+      yellow: 'bg-yellow-500',
+      green: 'bg-green-500',
+      blue: 'bg-blue-500',
+      purple: 'bg-purple-500',
+      brown: 'bg-amber-700',
+      multicolor: 'bg-gradient-to-r from-red-500 via-yellow-500 to-blue-500'
+    };
+    return colorMap[color] || 'bg-gray-500';
+  };
+
+  const unlockedBadges = profile.badges.filter(b => b.unlocked);
+  const inProgressBadges = profile.badges.filter(b => !b.unlocked);
+
+  return (
+    <div className="min-h-screen bg-gradient-to-b from-purple-400 to-pink-300 flex flex-col">
+      {/* Header */}
+      <div className="bg-white/95 backdrop-blur shadow-lg p-4">
+        <div className="flex items-center justify-between mb-4">
+          <Button variant="ghost" size="sm" onClick={onBack}>
+            <ArrowLeft className="w-5 h-5 mr-2" />
+            Back
+          </Button>
+          <h1 className="text-2xl font-bold text-gray-800">{profile.boardName}</h1>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setShowBadges(!showBadges)}
+            className="relative"
+          >
+            <Trophy className="w-5 h-5" />
+            {unlockedBadges.length > 0 && (
+              <span className="absolute -top-1 -right-1 w-5 h-5 bg-yellow-500 text-white text-xs rounded-full flex items-center justify-center">
+                {unlockedBadges.length}
+              </span>
+            )}
+          </Button>
+        </div>
+
+        <div className="flex items-center justify-between text-sm text-gray-600 mb-4">
+          <span>{profile.discoveries.length} discoveries</span>
+          <span>by {profile.name}</span>
+        </div>
+
+        {/* Sort tabs */}
+        <Tabs value={sortMode} onValueChange={(value) => setSortMode(value as SortMode)}>
+          <TabsList className="w-full grid grid-cols-4">
+            <TabsTrigger value="date" className="text-xs">
+              <Calendar className="w-4 h-4 mr-1" />
+              Date
+            </TabsTrigger>
+            <TabsTrigger value="type" className="text-xs">
+              <Grid3x3 className="w-4 h-4 mr-1" />
+              Type
+            </TabsTrigger>
+            <TabsTrigger value="color" className="text-xs">
+              <Palette className="w-4 h-4 mr-1" />
+              Color
+            </TabsTrigger>
+            <TabsTrigger value="habitat" className="text-xs">
+              <MapPin className="w-4 h-4 mr-1" />
+              Habitat
+            </TabsTrigger>
+          </TabsList>
+        </Tabs>
+      </div>
+
+      {/* Badges Modal */}
+      {showBadges && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4"
+          onClick={() => setShowBadges(false)}
+        >
+          <motion.div
+            initial={{ scale: 0.9, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            className="bg-white rounded-3xl p-6 max-w-md w-full max-h-[80vh] overflow-y-auto"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-2xl font-bold">My Badges</h2>
+              <Trophy className="w-8 h-8 text-yellow-500" />
+            </div>
+
+            {unlockedBadges.length > 0 && (
+              <div className="mb-6">
+                <h3 className="text-lg font-semibold mb-3 text-green-600">Unlocked! 🎉</h3>
+                <div className="space-y-3">
+                  {unlockedBadges.map((badge) => (
+                    <div key={badge.id} className="bg-gradient-to-r from-yellow-100 to-yellow-50 border-2 border-yellow-300 rounded-2xl p-4">
+                      <div className="flex items-start gap-3">
+                        <div className="w-12 h-12 bg-yellow-400 rounded-full flex items-center justify-center text-2xl">
+                          {badge.icon === 'bug' && '🐛'}
+                          {badge.icon === 'tree-deciduous' && '🌳'}
+                          {badge.icon === 'flower' && '🌸'}
+                          {badge.icon === 'bird' && '🐦'}
+                          {badge.icon === 'sparkles' && '✨'}
+                          {badge.icon === 'rainbow' && '🌈'}
+                        </div>
+                        <div className="flex-1">
+                          <h4 className="font-bold text-gray-800">{badge.name}</h4>
+                          <p className="text-sm text-gray-600">{badge.description}</p>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {inProgressBadges.length > 0 && (
+              <div>
+                <h3 className="text-lg font-semibold mb-3 text-gray-600">In Progress</h3>
+                <div className="space-y-3">
+                  {inProgressBadges.map((badge) => (
+                    <div key={badge.id} className="bg-gray-100 border-2 border-gray-200 rounded-2xl p-4">
+                      <div className="flex items-start gap-3">
+                        <div className="w-12 h-12 bg-gray-300 rounded-full flex items-center justify-center text-2xl opacity-50">
+                          {badge.icon === 'bug' && '🐛'}
+                          {badge.icon === 'tree-deciduous' && '🌳'}
+                          {badge.icon === 'flower' && '🌸'}
+                          {badge.icon === 'bird' && '🐦'}
+                          {badge.icon === 'sparkles' && '✨'}
+                          {badge.icon === 'rainbow' && '🌈'}
+                        </div>
+                        <div className="flex-1">
+                          <h4 className="font-bold text-gray-800">{badge.name}</h4>
+                          <p className="text-sm text-gray-600 mb-2">{badge.description}</p>
+                          <div className="flex items-center gap-2">
+                            <div className="flex-1 bg-gray-200 rounded-full h-2 overflow-hidden">
+                              <div
+                                className="bg-blue-500 h-full transition-all"
+                                style={{ width: `${((badge.progress || 0) / (badge.total || 1)) * 100}%` }}
+                              />
+                            </div>
+                            <span className="text-xs text-gray-600">
+                              {badge.progress}/{badge.total}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </motion.div>
+        </motion.div>
+      )}
+
+      {/* Cards Grid */}
+      <div className="flex-1 p-4 overflow-y-auto">
+        {sortedDiscoveries.length === 0 ? (
+          <div className="flex flex-col items-center justify-center h-full text-center">
+            <Sparkles className="w-20 h-20 text-white/50 mb-4" />
+            <h3 className="text-2xl font-bold text-white mb-2">Your Museum is Empty</h3>
+            <p className="text-white/80 mb-6">Start exploring to collect discoveries!</p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-2 gap-4 pb-4">
+            {sortedDiscoveries.map((discovery, index) => (
+              <motion.div
+                key={discovery.id}
+                initial={{ opacity: 0, scale: 0.8 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ delay: index * 0.05 }}
+                onClick={() => onCardClick(discovery)}
+                className="cursor-pointer"
+              >
+                <div className="bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-2xl transition-shadow">
+                  <div className="relative h-40 bg-gray-100">
+                    <ImageWithFallback
+                      src={`https://source.unsplash.com/300x300/?${discovery.imageUrl}`}
+                      alt={discovery.name}
+                      className="w-full h-full object-cover"
+                    />
+                    {sortMode === 'color' && (
+                      <div className={`absolute top-2 right-2 w-6 h-6 rounded-full ${getColorBadgeColor(discovery.color)} border-2 border-white shadow-lg`} />
+                    )}
+                    {discovery.isDangerous && (
+                      <div className="absolute top-2 left-2 bg-red-500 text-white px-2 py-1 rounded-full text-xs font-bold">
+                        ⚠️ Danger
+                      </div>
+                    )}
+                  </div>
+                  <div className="p-3">
+                    <h3 className="font-bold text-gray-800 mb-1 truncate">{discovery.name}</h3>
+                    <div className="flex items-center gap-1 flex-wrap">
+                      <Badge variant="secondary" className="text-xs">
+                        {discovery.category}
+                      </Badge>
+                      {sortMode === 'habitat' && (
+                        <Badge variant="outline" className="text-xs">
+                          {discovery.habitat}
+                        </Badge>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </motion.div>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
