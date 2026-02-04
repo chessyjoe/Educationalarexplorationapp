@@ -54,9 +54,9 @@ export function CuriosityBoard({ profile, onBack, onCardClick }: CuriosityBoardP
   const inProgressBadges = profile.badges.filter(b => !b.unlocked);
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-purple-400 to-pink-300 flex flex-col">
+    <div className="min-h-screen bg-gradient-to-b from-purple-300 via-pink-300 to-orange-200 flex flex-col">
       {/* Header */}
-      <div className="bg-white/95 backdrop-blur shadow-lg p-4">
+      <div className="bg-white/95 backdrop-blur shadow-[0_4px_12px_rgba(0,0,0,0.1)] p-4">
         <div className="flex items-center justify-between mb-4">
           <Button variant="ghost" size="sm" onClick={onBack}>
             <ArrowLeft className="w-5 h-5 mr-2" />
