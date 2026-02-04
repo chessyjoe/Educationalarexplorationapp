@@ -61,16 +61,15 @@ export function WelcomeScreen({
 
       {/* Parent Settings Button */}
       <motion.div
-        className="absolute top-4 right-4"
+        className="absolute top-4 right-4 z-20"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ delay: 1 }}
       >
         <Button
-          variant="ghost"
           size="sm"
           onClick={onOpenParentDashboard}
-          className="bg-white/20 hover:bg-white/30 backdrop-blur text-white"
+          className="bg-white/80 hover:bg-white text-gray-800 shadow-[0_4px_0_rgba(0,0,0,0.1),0_6px_12px_rgba(0,0,0,0.12)] hover:shadow-[0_6px_0_rgba(0,0,0,0.12),0_8px_16px_rgba(0,0,0,0.15)] active:shadow-[0_2px_0_rgba(0,0,0,0.08),0_3px_6px_rgba(0,0,0,0.06)] active:translate-y-0.5 rounded-[1.2rem]"
         >
           <Settings className="w-5 h-5" />
         </Button>
