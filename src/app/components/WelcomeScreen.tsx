@@ -28,32 +28,6 @@ export function WelcomeScreen({
 }: WelcomeScreenProps) {
   return (
     <div className="h-screen bg-gradient-to-b from-slate-50 to-slate-100 flex flex-col items-center justify-center p-6 relative overflow-hidden">
-      {/* Floating elements animation */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        {[...Array(10)].map((_, i) => (
-          <motion.div
-            key={i}
-            className="absolute text-4xl"
-            initial={{
-              x: Math.random() * window.innerWidth,
-              y: -50,
-              opacity: 0.3
-            }}
-            animate={{
-              y: window.innerHeight + 50,
-              rotate: 360
-            }}
-            transition={{
-              duration: 10 + Math.random() * 10,
-              repeat: Infinity,
-              delay: i * 2,
-              ease: 'linear'
-            }}
-          >
-            {['🌸', '🦋', '🐛', '🌿', '🌻', '🐦'][Math.floor(Math.random() * 6)]}
-          </motion.div>
-        ))}
-      </div>
 
       {/* Parent Settings Button */}
       <motion.div
