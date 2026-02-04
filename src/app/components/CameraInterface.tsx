@@ -171,14 +171,16 @@ export function CameraInterface({
       {/* Capture button */}
       {!isProcessing && (
         <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-10 flex flex-col items-center gap-3">
-          <Button
-            size="lg"
-            onClick={onCapture}
-            className="w-20 h-20 rounded-full bg-white hover:bg-gray-100 shadow-2xl border-4 border-blue-500"
-          >
-            <div className="w-16 h-16 rounded-full bg-gradient-to-br from-blue-500 to-purple-600" />
-          </Button>
-          <p className="text-white text-sm font-medium drop-shadow-lg">Tap to Snap!</p>
+          <motion.div whileTap={{ scale: 0.95 }}>
+            <Button
+              size="lg"
+              onClick={onCapture}
+              className="w-24 h-24 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white shadow-[0_8px_0_rgba(0,0,0,0.2),0_12px_24px_rgba(0,0,0,0.15)] hover:shadow-[0_12px_0_rgba(0,0,0,0.2),0_16px_32px_rgba(0,0,0,0.2)] active:shadow-[0_4px_0_rgba(0,0,0,0.15),0_6px_12px_rgba(0,0,0,0.1)] active:translate-y-1"
+            >
+              <Camera className="w-8 h-8" />
+            </Button>
+          </motion.div>
+          <p className="text-white text-sm font-semibold drop-shadow-lg">Tap to Snap!</p>
         </div>
       )}
 
