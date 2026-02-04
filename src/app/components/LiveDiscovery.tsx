@@ -210,14 +210,37 @@ export function LiveDiscovery({ profile, onBack, onDiscovery, onSessionComplete 
           </motion.div>
         </div>
 
-        {/* Session Timer */}
-        <motion.div
-          className="text-4xl font-bold text-white drop-shadow-lg tracking-wider"
-          animate={{ scale: isRunning ? [1, 1.05, 1] : 1 }}
-          transition={{ duration: 2, repeat: isRunning ? Infinity : 0 }}
-        >
-          {formatTime(sessionTime)}
-        </motion.div>
+        {/* Session Timer with time limit indicator */}
+        <div className="space-y-3">
+          <motion.div
+            className="text-4xl font-bold text-white drop-shadow-lg tracking-wider"
+            animate={{ scale: isRunning ? [1, 1.05, 1] : 1 }}
+            transition={{ duration: 2, repeat: isRunning ? Infinity : 0 }}
+          >
+            {formatTime(sessionTime)} / {formatTime(MAX_SESSION_DURATION)}
+          </motion.div>
+
+          {/* Time remaining indicator */}
+          {isRunning && (
+            <motion.div className="flex items-center justify-center gap-2">
+              <Clock className="w-4 h-4 text-white opacity-70" />
+              <div className="w-48 h-2 bg-white/20 rounded-full overflow-hidden">
+                <motion.div
+                  className={`h-full transition-all ${
+                    sessionTime > MAX_SESSION_DURATION * 0.9
+                      ? 'bg-red-400'
+                      : sessionTime > MAX_SESSION_DURATION * 0.7
+                      ? 'bg-yellow-400'
+                      : 'bg-green-400'
+                  }`}
+                  initial={{ width: 0 }}
+                  animate={{ width: `${(sessionTime / MAX_SESSION_DURATION) * 100}%` }}
+                  transition={{ duration: 0.3 }}
+                />
+              </div>
+            </motion.div>
+          )}
+        </div>
 
         {/* Live Stats */}
         <div className="grid grid-cols-3 gap-4 w-full max-w-md">
