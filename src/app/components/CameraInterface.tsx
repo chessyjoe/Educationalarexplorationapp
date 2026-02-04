@@ -41,8 +41,62 @@ export function CameraInterface({
     setPipMessage(randomMessage);
   };
 
+  const handleModeChange = (mode: CameraMode) => {
+    if (mode === 'chat' && onOpenChat) {
+      onOpenChat();
+    } else if (mode === 'voice' && onOpenVoiceMode) {
+      onOpenVoiceMode();
+    } else if (mode === 'live' && onOpenLiveDiscovery) {
+      onOpenLiveDiscovery();
+    } else {
+      setCurrentMode(mode);
+    }
+  };
+
   return (
     <div className="relative w-full h-full bg-gradient-to-b from-sky-200 to-green-100 overflow-hidden">
+      {/* Mode Switcher Tabs */}
+      <div className="absolute top-16 left-0 right-0 z-20 flex justify-center gap-2 px-4">
+        <motion.button
+          onClick={() => handleModeChange('camera')}
+          className={`flex items-center gap-2 px-4 py-2 rounded-[1rem] transition-all ${
+            currentMode === 'camera'
+              ? 'bg-white shadow-lg scale-105'
+              : 'bg-white/70 hover:bg-white/85'
+          }`}
+          whileTap={{ scale: 0.95 }}
+        >
+          <Camera className="w-5 h-5 text-sky-600" />
+          <span className="text-sm font-semibold text-gray-800">Camera</span>
+        </motion.button>
+
+        <motion.button
+          onClick={() => handleModeChange('chat')}
+          className="flex items-center gap-2 px-4 py-2 rounded-[1rem] bg-white/70 hover:bg-white/85 transition-all"
+          whileTap={{ scale: 0.95 }}
+        >
+          <MessageCircle className="w-5 h-5 text-pink-600" />
+          <span className="text-sm font-semibold text-gray-800">Chat</span>
+        </motion.button>
+
+        <motion.button
+          onClick={() => handleModeChange('voice')}
+          className="flex items-center gap-2 px-4 py-2 rounded-[1rem] bg-white/70 hover:bg-white/85 transition-all"
+          whileTap={{ scale: 0.95 }}
+        >
+          <Mic className="w-5 h-5 text-blue-600" />
+          <span className="text-sm font-semibold text-gray-800">Voice</span>
+        </motion.button>
+
+        <motion.button
+          onClick={() => handleModeChange('live')}
+          className="flex items-center gap-2 px-4 py-2 rounded-[1rem] bg-white/70 hover:bg-white/85 transition-all"
+          whileTap={{ scale: 0.95 }}
+        >
+          <Zap className="w-5 h-5 text-amber-600" />
+          <span className="text-sm font-semibold text-gray-800">Live</span>
+        </motion.button>
+      </div>
       {/* Simulated camera view */}
       <div className="absolute inset-0 flex items-center justify-center">
         <div className="text-center text-gray-600 opacity-50">
