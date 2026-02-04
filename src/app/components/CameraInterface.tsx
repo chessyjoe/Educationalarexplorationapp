@@ -144,26 +144,32 @@ export function CameraInterface({
         </div>
       </div>
 
-      {/* Top controls */}
-      <div className="absolute top-6 left-0 right-0 z-20 px-6">
-        <div className="flex items-center justify-between">
+      {/* Top controls - responsive */}
+      <div className="absolute top-4 sm:top-6 left-0 right-0 z-20 px-4 sm:px-6">
+        <div className="flex items-center justify-between gap-2 sm:gap-4">
           {/* Flash button */}
           <motion.button
             whileTap={{ scale: 0.95 }}
+            whileHover={{ scale: 1.05 }}
             onClick={handleFlashToggle}
-            className={`w-14 h-14 rounded-full border-2 flex items-center justify-center transition-colors ${
-              flashEnabled 
-                ? 'bg-white border-white text-[#8B6F5E]' 
-                : 'bg-transparent border-white/60 text-white'
+            title={flashEnabled ? "Turn flash off" : "Turn flash on"}
+            aria-label={flashEnabled ? "Flash off" : "Flash on"}
+            className={`w-12 h-12 sm:w-14 sm:h-14 rounded-full border-2 flex items-center justify-center transition-all ${
+              flashEnabled
+                ? 'bg-white border-white text-[#8B6F5E] shadow-lg'
+                : 'bg-transparent border-white/60 text-white hover:border-white/80'
             }`}
           >
-            <Zap className="w-6 h-6" fill={flashEnabled ? 'currentColor' : 'none'} />
+            <Zap className="w-5 h-5 sm:w-6 sm:h-6" fill={flashEnabled ? 'currentColor' : 'none'} />
           </motion.button>
 
-          {/* Lens Mode button */}
+          {/* Lens Mode button - responsive text and padding */}
           <motion.button
             whileTap={{ scale: 0.95 }}
-            className="px-8 py-3 rounded-full bg-gradient-to-r from-[#FF9B7A] to-[#FFA88A] text-white font-bold text-sm tracking-wider shadow-lg"
+            whileHover={{ scale: 1.05 }}
+            className="px-6 sm:px-8 py-2.5 sm:py-3 rounded-full bg-gradient-to-r from-[#FF9B7A] to-[#FFA88A] text-white font-bold text-xs sm:text-sm tracking-wider shadow-lg transition-all hover:shadow-xl"
+            title="Lens mode"
+            aria-label="Lens mode"
           >
             LENS MODE
           </motion.button>
@@ -171,20 +177,26 @@ export function CameraInterface({
           {/* Settings button */}
           <motion.button
             whileTap={{ scale: 0.95 }}
+            whileHover={{ scale: 1.05 }}
             onClick={onBack}
-            className="w-14 h-14 rounded-full bg-transparent border-2 border-white/60 text-white flex items-center justify-center"
+            title="Settings"
+            aria-label="Settings"
+            className="w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-transparent border-2 border-white/60 text-white flex items-center justify-center transition-all hover:border-white/80"
           >
-            <Settings className="w-6 h-6" />
+            <Settings className="w-5 h-5 sm:w-6 sm:h-6" />
           </motion.button>
         </div>
 
-        {/* Camera flip button */}
+        {/* Camera flip button - below top controls on mobile */}
         <motion.button
           whileTap={{ scale: 0.95 }}
+          whileHover={{ scale: 1.05 }}
           onClick={handleCameraFlip}
-          className="w-14 h-14 rounded-full bg-transparent border-2 border-white/60 text-white flex items-center justify-center mt-4"
+          title={`Switch to ${facingMode === 'user' ? 'back' : 'front'} camera`}
+          aria-label={`Switch to ${facingMode === 'user' ? 'back' : 'front'} camera`}
+          className="w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-transparent border-2 border-white/60 text-white flex items-center justify-center transition-all hover:border-white/80 mt-3 sm:mt-4"
         >
-          <RotateCcw className="w-6 h-6" />
+          <RotateCcw className="w-5 h-5 sm:w-6 sm:h-6" />
         </motion.button>
       </div>
 
