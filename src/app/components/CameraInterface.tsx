@@ -1,16 +1,29 @@
 import { useState } from 'react';
-import { Camera, Focus, Loader2, Home } from 'lucide-react';
+import { Camera, Focus, Loader2, Home, MessageCircle, Mic, Zap } from 'lucide-react';
 import { motion } from 'motion/react';
 import { PipMascot } from './PipMascot';
 import { Button } from './ui/button';
+
+type CameraMode = 'camera' | 'chat' | 'voice' | 'live';
 
 interface CameraInterfaceProps {
   onCapture: () => void;
   isProcessing: boolean;
   onBack?: () => void;
+  onOpenChat?: () => void;
+  onOpenVoiceMode?: () => void;
+  onOpenLiveDiscovery?: () => void;
 }
 
-export function CameraInterface({ onCapture, isProcessing, onBack }: CameraInterfaceProps) {
+export function CameraInterface({
+  onCapture,
+  isProcessing,
+  onBack,
+  onOpenChat,
+  onOpenVoiceMode,
+  onOpenLiveDiscovery
+}: CameraInterfaceProps) {
+  const [currentMode, setCurrentMode] = useState<CameraMode>('camera');
   const [pipMessage, setPipMessage] = useState("Point me at something cool!");
   const [showReticle, setShowReticle] = useState(true);
 
