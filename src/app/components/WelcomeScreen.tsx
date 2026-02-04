@@ -82,10 +82,10 @@ export function WelcomeScreen({
         transition={{ type: 'spring', duration: 0.8 }}
         className="text-center mb-8 relative z-10"
       >
-        <h1 className="text-5xl font-bold text-white mb-2 drop-shadow-lg">
+        <h1 className="text-6xl font-bold text-white mb-2 text-bubble">
           Pocket Science
         </h1>
-        <p className="text-xl text-white/90 drop-shadow">
+        <p className="text-xl text-white/95 drop-shadow-md font-semibold">
           Your Nature Adventure Starts Here!
         </p>
       </motion.div>
