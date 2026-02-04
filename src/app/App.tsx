@@ -261,6 +261,15 @@ export default function App() {
           profile={profile}
           onBack={handleBackToWelcome}
           onDiscovery={handleLiveDiscovery}
+          onSessionComplete={handleLiveSessionComplete}
+        />
+      )}
+
+      {currentScreen === 'live-results' && (
+        <LiveDiscoveryResults
+          discoveries={sessionDiscoveries}
+          onBack={() => setCurrentScreen('live')}
+          onConfirm={handleLiveResultsConfirm}
         />
       )}
 
