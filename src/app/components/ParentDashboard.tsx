@@ -100,7 +100,7 @@ export function ParentDashboard({ profile, onBack, onUpdateProfile, onClearData 
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-indigo-500 to-purple-600 flex flex-col">
-      <div className="bg-white/95 backdrop-blur shadow-lg p-4">
+      <div className="bg-white/95 backdrop-blur shadow-[0_4px_12px_rgba(0,0,0,0.1)] p-4">
         <div className="flex items-center justify-between mb-2">
           <Button variant="ghost" size="sm" onClick={onBack}>
             <ArrowLeft className="w-5 h-5 mr-2" />
