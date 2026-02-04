@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { Camera, Focus, Loader2, Settings, Zap, RotateCcw, Image, Film, Leaf } from 'lucide-react';
 import { motion } from 'motion/react';
 import { PipMascot } from './PipMascot';
@@ -25,8 +25,11 @@ export function CameraInterface({
 }: CameraInterfaceProps) {
   const [currentMode, setCurrentMode] = useState<CameraMode>('camera');
   const [pipMessage, setPipMessage] = useState("That looks like a Fern! Keep it in the circle.");
+  const [pipEmotion, setPipEmotion] = useState<'happy' | 'excited' | 'thinking' | 'warning'>('happy');
   const [flashEnabled, setFlashEnabled] = useState(false);
   const [facingMode, setFacingMode] = useState<'user' | 'environment'>('environment');
+  const [touchStart, setTouchStart] = useState<number | null>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
 
   const messages = [
     "That looks like a Fern! Keep it in the circle.",
@@ -40,43 +43,90 @@ export function CameraInterface({
 
   const handleModeChange = (mode: CameraMode) => {
     if (mode === 'chat' && onOpenChat) {
+      setPipMessage("Opening chat mode...");
+      setPipEmotion('excited');
       onOpenChat();
     } else if (mode === 'voice' && onOpenVoiceMode) {
+      setPipMessage("Time to talk!");
+      setPipEmotion('excited');
       onOpenVoiceMode();
     } else if (mode === 'live' && onOpenLiveDiscovery) {
+      setPipMessage("Let's find discoveries!");
+      setPipEmotion('excited');
       onOpenLiveDiscovery();
     } else {
       setCurrentMode(mode);
+      setPipMessage("Camera mode ready!");
+      setPipEmotion('happy');
     }
   };
 
   const handleFlashToggle = () => {
     setFlashEnabled(!flashEnabled);
+    setPipMessage(flashEnabled ? "Flash off!" : "Flash on!");
+    setPipEmotion('excited');
+    setTimeout(() => {
+      setPipEmotion('happy');
+    }, 1500);
   };
 
   const handleCameraFlip = () => {
     setFacingMode(facingMode === 'user' ? 'environment' : 'user');
+    setPipMessage(facingMode === 'user' ? "Back camera ready!" : "Front camera ready!");
+    setPipEmotion('excited');
+    setTimeout(() => {
+      setPipEmotion('happy');
+    }, 1500);
   };
 
   const handleGallery = () => {
-    // Open gallery
+    setPipMessage("Opening your gallery...");
+    setPipEmotion('happy');
     console.log('Open gallery');
   };
 
   const handleRecent = () => {
-    // Open recent captures
+    setPipMessage("Checking your recent captures...");
+    setPipEmotion('happy');
     console.log('Open recent captures');
   };
 
   const handlePhotoMode = () => {
-    // Switch to photo mode
+    setPipMessage("Photo mode activated!");
+    setPipEmotion('excited');
     console.log('Photo mode');
   };
 
   const handleDiscoveryMode = () => {
     if (onOpenLiveDiscovery) {
+      setPipMessage("Let's find discoveries!");
+      setPipEmotion('excited');
       onOpenLiveDiscovery();
     }
+  };
+
+  const handleTouchStart = (e: React.TouchEvent<HTMLDivElement>) => {
+    setTouchStart(e.touches[0].clientX);
+  };
+
+  const handleTouchEnd = (e: React.TouchEvent<HTMLDivElement>) => {
+    if (touchStart === null) return;
+
+    const touchEnd = e.changedTouches[0].clientX;
+    const diff = touchStart - touchEnd;
+
+    // Swipe left - next mode
+    if (diff > 50) {
+      setPipMessage("Swiping to next mode...");
+      setPipEmotion('excited');
+    }
+    // Swipe right - previous mode
+    else if (diff < -50) {
+      setPipMessage("Swiping to previous mode...");
+      setPipEmotion('excited');
+    }
+
+    setTouchStart(null);
   };
 
   return (
