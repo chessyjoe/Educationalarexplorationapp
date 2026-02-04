@@ -280,41 +280,48 @@ export function CameraInterface({
         </div>
       )}
 
-      {/* Bottom controls */}
+      {/* Bottom controls - responsive layout */}
       {!isProcessing && (
-        <div className="absolute bottom-0 left-0 right-0 z-10 pb-8">
+        <div className="absolute bottom-0 left-0 right-0 z-10 pb-4 sm:pb-8">
           {/* Swipe for modes text */}
-          <div className="text-center mb-4">
+          <div className="text-center mb-3 sm:mb-4">
             <p className="text-white text-xs font-semibold tracking-wider opacity-80">
               SWIPE FOR MODES
             </p>
           </div>
 
-          {/* Control buttons */}
-          <div className="flex items-center justify-center gap-8 px-6">
+          {/* Control buttons - responsive grid/flex */}
+          <div className="flex items-center justify-center gap-4 sm:gap-6 md:gap-8 px-4 sm:px-6">
             {/* Gallery */}
             <motion.button
               whileTap={{ scale: 0.95 }}
               onClick={handleGallery}
-              className="w-14 h-14 rounded-full bg-black/40 border-2 border-white/30 text-white flex items-center justify-center"
+              title="Gallery"
+              aria-label="Gallery"
+              className="w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-black/40 border-2 border-white/30 text-white flex items-center justify-center transition-all hover:border-white/50 active:bg-black/60"
             >
-              <Image className="w-6 h-6" />
+              <Image className="w-5 h-5 sm:w-6 sm:h-6" />
             </motion.button>
 
             {/* Recent captures */}
             <motion.button
               whileTap={{ scale: 0.95 }}
               onClick={handleRecent}
-              className="w-14 h-14 rounded-full bg-black/40 border-2 border-white/30 text-white flex items-center justify-center"
+              title="Recent"
+              aria-label="Recent captures"
+              className="w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-black/40 border-2 border-white/30 text-white flex items-center justify-center transition-all hover:border-white/50 active:bg-black/60"
             >
-              <Film className="w-5 h-5" />
+              <Film className="w-5 h-5 sm:w-5 sm:h-5" />
             </motion.button>
 
-            {/* Main capture button */}
+            {/* Main capture button - largest, centered */}
             <motion.button
-              whileTap={{ scale: 0.95 }}
+              whileTap={{ scale: 0.92 }}
+              whileHover={{ scale: 1.05 }}
               onClick={onCapture}
-              className="relative w-20 h-20 flex items-center justify-center"
+              title="Capture photo"
+              aria-label="Capture photo"
+              className="relative w-16 h-16 sm:w-20 sm:h-20 flex items-center justify-center flex-shrink-0"
             >
               {/* Outer ring */}
               <div className="absolute inset-0 rounded-full border-4 border-white" />
@@ -322,7 +329,7 @@ export function CameraInterface({
               <div className="absolute inset-2 rounded-full bg-gradient-to-br from-[#FF9B7A] to-[#FFA88A] border-4 border-white" />
               {/* Inner content */}
               <div className="absolute inset-4 rounded-full border-2 border-white/40 flex items-center justify-center">
-                <Focus className="w-6 h-6 text-white" />
+                <Focus className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
               </div>
             </motion.button>
 
@@ -330,24 +337,28 @@ export function CameraInterface({
             <motion.button
               whileTap={{ scale: 0.95 }}
               onClick={handlePhotoMode}
-              className="w-14 h-14 rounded-full bg-black/40 border-2 border-white/30 text-white flex items-center justify-center"
+              title="Photo mode"
+              aria-label="Photo mode"
+              className="w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-black/40 border-2 border-white/30 text-white flex items-center justify-center transition-all hover:border-white/50 active:bg-black/60"
             >
-              <Camera className="w-6 h-6" />
+              <Camera className="w-5 h-5 sm:w-6 sm:h-6" />
             </motion.button>
 
             {/* Discovery mode */}
             <motion.button
               whileTap={{ scale: 0.95 }}
               onClick={handleDiscoveryMode}
-              className="w-14 h-14 rounded-full bg-black/40 border-2 border-white/30 text-white flex items-center justify-center"
+              title="Discovery mode"
+              aria-label="Live discovery mode"
+              className="w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-black/40 border-2 border-white/30 text-white flex items-center justify-center transition-all hover:border-white/50 active:bg-black/60"
             >
-              <Leaf className="w-6 h-6" />
+              <Leaf className="w-5 h-5 sm:w-6 sm:h-6" />
             </motion.button>
           </div>
 
           {/* Home indicator bar */}
-          <div className="flex justify-center mt-6">
-            <div className="w-32 h-1 bg-white/40 rounded-full" />
+          <div className="flex justify-center mt-4 sm:mt-6">
+            <div className="w-24 sm:w-32 h-1 bg-white/40 rounded-full" />
           </div>
         </div>
       )}
