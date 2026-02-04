@@ -151,14 +151,14 @@ export function LiveDiscovery({ profile, onBack, onDiscovery, onSessionComplete 
 
       {/* Main Content */}
       <div className="flex-1 overflow-y-auto flex flex-col items-center justify-center p-6 space-y-6">
-        {/* Pip Mascot */}
+        {/* Pip Mascot - responsive */}
         <motion.div
           animate={{ scale: isRunning ? [1, 1.05, 1] : 1 }}
-          transition={{ duration: isRunning ? 1.5 : 0, repeat: isRunning ? Infinity : 0 }}
+          transition={{ duration: isRunning ? 1.5 : 0.5, repeat: isRunning ? Infinity : 0 }}
         >
           <PipMascot
-            message={isRunning ? 'Scanning for discoveries...' : 'Ready to discover? Let\'s go!'}
-            emotion={isRunning ? 'excited' : 'happy'}
+            message={pipMessage}
+            emotion={pipEmotion}
             size="large"
           />
         </motion.div>
