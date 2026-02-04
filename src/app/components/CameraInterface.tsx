@@ -130,7 +130,12 @@ export function CameraInterface({
   };
 
   return (
-    <div className="relative w-full h-full bg-gradient-to-b from-[#8B6F5E] via-[#A88B73] to-[#8B6F5E] overflow-hidden">
+    <div
+      ref={containerRef}
+      onTouchStart={handleTouchStart}
+      onTouchEnd={handleTouchEnd}
+      className="relative w-full h-full bg-gradient-to-b from-[#8B6F5E] via-[#A88B73] to-[#8B6F5E] overflow-hidden"
+    >
       {/* Simulated camera view */}
       <div className="absolute inset-0 flex items-center justify-center opacity-20">
         <div className="text-center text-white">
