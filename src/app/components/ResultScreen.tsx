@@ -26,64 +26,68 @@ export function ResultScreen({ discovery, onAddToBoard, onTryAgain }: ResultScre
 
   if (isDangerous) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-red-500 to-orange-400 p-6 flex flex-col items-center justify-center">
-        <motion.div
-          initial={{ scale: 0, rotate: -180 }}
-          animate={{ scale: 1, rotate: 0 }}
-          transition={{ type: 'spring', duration: 0.8 }}
-          className="mb-6"
-        >
-          <div className="w-32 h-32 bg-white rounded-full flex items-center justify-center shadow-2xl">
-            <AlertTriangle className="w-20 h-20 text-red-500" />
-          </div>
-        </motion.div>
+      <div className="h-screen bg-gradient-to-b from-red-500 to-orange-400 flex flex-col overflow-hidden">
+        {/* Top section with warning icon and messages */}
+        <div className="flex-shrink-0 flex flex-col items-center p-4 gap-3">
+          <motion.div
+            initial={{ scale: 0, rotate: -180 }}
+            animate={{ scale: 1, rotate: 0 }}
+            transition={{ type: 'spring', duration: 0.8 }}
+          >
+            <div className="w-32 h-32 bg-white rounded-full flex items-center justify-center shadow-2xl">
+              <AlertTriangle className="w-20 h-20 text-red-500" />
+            </div>
+          </motion.div>
 
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.3 }}
-          className="text-center mb-6"
-        >
-          <h1 className="text-4xl font-bold text-white mb-2">STOP!</h1>
-          <h2 className="text-2xl font-bold text-white mb-4">Do Not Touch!</h2>
-        </motion.div>
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3 }}
+            className="text-center"
+          >
+            <h1 className="text-4xl font-bold text-white mb-2">STOP!</h1>
+            <h2 className="text-2xl font-bold text-white">Do Not Touch!</h2>
+          </motion.div>
 
-        <div className="mb-6">
           <PipMascot message="Careful! This one can hurt you!" emotion="warning" size="large" />
         </div>
 
-        <div className="bg-white rounded-[2rem] p-6 max-w-md shadow-[0_10px_0_rgba(0,0,0,0.12),0_15px_30px_rgba(0,0,0,0.15)] mb-6">
-          <h3 className="text-2xl font-bold text-red-600 mb-2">{discovery.name}</h3>
-          {discovery.scientificName && (
-            <p className="text-sm text-gray-500 italic mb-4">{discovery.scientificName}</p>
-          )}
+        {/* Main scrollable content area */}
+        <div className="flex-1 overflow-hidden flex flex-col px-6 pb-4">
+          <div className="bg-white rounded-[2rem] p-6 shadow-[0_10px_0_rgba(0,0,0,0.12),0_15px_30px_rgba(0,0,0,0.15)] flex-1 overflow-y-auto">
+            <h3 className="text-2xl font-bold text-red-600 mb-2">{discovery.name}</h3>
+            {discovery.scientificName && (
+              <p className="text-sm text-gray-500 italic mb-4">{discovery.scientificName}</p>
+            )}
 
-          <div className="mb-4 rounded-[1.5rem] overflow-hidden bg-gray-100">
-            <ImageWithFallback
-              src={`https://source.unsplash.com/400x300/?${discovery.imageUrl}`}
-              alt={discovery.name}
-              className="w-full h-48 object-cover"
-            />
-          </div>
-
-          <div className="bg-red-50 border-2 border-red-200 rounded-[1.5rem] p-4 mb-4">
-            <p className="text-base leading-relaxed">{discovery.story}</p>
-          </div>
-
-          {discovery.funFact && (
-            <div className="bg-yellow-50 border-2 border-yellow-200 rounded-[1.5rem] p-4 flex gap-3">
-              <Sparkles className="w-5 h-5 text-yellow-600 flex-shrink-0 mt-1" />
-              <p className="text-sm leading-relaxed">{discovery.funFact}</p>
+            <div className="mb-4 rounded-[1.5rem] overflow-hidden bg-gray-100">
+              <ImageWithFallback
+                src={`https://source.unsplash.com/400x300/?${discovery.imageUrl}`}
+                alt={discovery.name}
+                className="w-full h-48 object-cover"
+              />
             </div>
-          )}
+
+            <div className="bg-red-50 border-2 border-red-200 rounded-[1.5rem] p-4 mb-4">
+              <p className="text-base leading-relaxed">{discovery.story}</p>
+            </div>
+
+            {discovery.funFact && (
+              <div className="bg-yellow-50 border-2 border-yellow-200 rounded-[1.5rem] p-4 flex gap-3">
+                <Sparkles className="w-5 h-5 text-yellow-600 flex-shrink-0 mt-1" />
+                <p className="text-sm leading-relaxed">{discovery.funFact}</p>
+              </div>
+            )}
+          </div>
         </div>
 
-        <div className="flex gap-3">
+        {/* Bottom buttons - fixed at bottom */}
+        <div className="flex-shrink-0 px-6 py-4 bg-gradient-to-t from-orange-400 to-transparent flex gap-3">
           <Button
             onClick={handleSpeak}
             variant="outline"
             size="lg"
-            className="bg-white/90 hover:bg-white"
+            className="flex-1 bg-white/90 hover:bg-white h-14"
           >
             <Volume2 className="w-5 h-5 mr-2" />
             Read to Me
@@ -91,7 +95,7 @@ export function ResultScreen({ discovery, onAddToBoard, onTryAgain }: ResultScre
           <Button
             onClick={onTryAgain}
             size="lg"
-            className="bg-white text-red-600 hover:bg-gray-100"
+            className="flex-1 bg-white text-red-600 hover:bg-gray-100 h-14"
           >
             Find Something Else
           </Button>
