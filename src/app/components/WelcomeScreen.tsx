@@ -1,5 +1,5 @@
 import { motion } from 'motion/react';
-import { Camera, Sparkles, Trophy, Settings } from 'lucide-react';
+import { Camera, Sparkles, Trophy, Settings, MessageCircle, Zap, Mic } from 'lucide-react';
 import { Button } from './ui/button';
 import { PipMascot } from './PipMascot';
 
@@ -8,6 +8,9 @@ interface WelcomeScreenProps {
   onStartExploring: () => void;
   onViewBoard: () => void;
   onOpenParentDashboard: () => void;
+  onOpenChat: () => void;
+  onOpenVoiceMode: () => void;
+  onOpenLiveDiscovery: () => void;
   discoveryCount: number;
   badgeCount: number;
 }
@@ -17,6 +20,9 @@ export function WelcomeScreen({
   onStartExploring,
   onViewBoard,
   onOpenParentDashboard,
+  onOpenChat,
+  onOpenVoiceMode,
+  onOpenLiveDiscovery,
   discoveryCount,
   badgeCount
 }: WelcomeScreenProps) {
