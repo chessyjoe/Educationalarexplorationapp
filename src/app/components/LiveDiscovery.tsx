@@ -1,14 +1,15 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'motion/react';
-import { Zap, ArrowLeft, BarChart3, Pause, Play } from 'lucide-react';
+import { Zap, ArrowLeft, Pause, Play, Clock } from 'lucide-react';
 import { Button } from './ui/button';
 import { PipMascot } from './PipMascot';
-import type { UserProfile } from '@/app/types';
+import type { UserProfile, Discovery } from '@/app/types';
 
 interface LiveDiscoveryProps {
   profile: UserProfile;
   onBack: () => void;
   onDiscovery: (count: number) => void;
+  onSessionComplete?: (sessionDiscoveries: SessionDiscovery[]) => void;
 }
 
 interface LiveStat {
@@ -17,10 +18,24 @@ interface LiveStat {
   icon: string;
 }
 
-export function LiveDiscovery({ profile, onBack, onDiscovery }: LiveDiscoveryProps) {
+interface SessionDiscovery {
+  id: string;
+  name: string;
+  timestamp: Date;
+  confidence: number;
+  selected: boolean;
+}
+
+const MAX_SESSION_DURATION = 5 * 60; // 5 minutes in seconds
+const SESSION_STORAGE_KEY = 'live_discovery_session';
+
+export function LiveDiscovery({ profile, onBack, onDiscovery, onSessionComplete }: LiveDiscoveryProps) {
   const [isRunning, setIsRunning] = useState(false);
   const [discoveredCount, setDiscoveredCount] = useState(0);
   const [sessionTime, setSessionTime] = useState(0);
+  const [sessionDiscoveries, setSessionDiscoveries] = useState<SessionDiscovery[]>([]);
+  const [pipMessage, setPipMessage] = useState('Ready to discover? Let\'s go!');
+  const [pipEmotion, setPipEmotion] = useState<'happy' | 'excited' | 'thinking' | 'warning'>('happy');
   const [stats, setStats] = useState<LiveStat[]>([
     { label: 'Discoveries Today', value: 0, icon: '🔍' },
     { label: 'New Species', value: 0, icon: '🆕' },
