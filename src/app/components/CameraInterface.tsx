@@ -198,15 +198,16 @@ export function CameraInterface({
 
       {/* Back button */}
       {onBack && (
-        <div className="absolute top-4 left-4 z-10">
+        <motion.div className="absolute top-4 left-4 z-10" whileTap={{ scale: 0.95 }}>
           <Button
-            size="sm"
+            size="icon"
             onClick={onBack}
-            className="w-10 h-10 rounded-full bg-white hover:bg-gray-100 shadow-2xl border-4 border-blue-500"
+            variant="default"
+            className="bg-white hover:bg-gray-100 text-blue-600 shadow-[0_4px_0_rgba(0,0,0,0.12),0_8px_16px_rgba(0,0,0,0.1)] hover:shadow-[0_6px_0_rgba(0,0,0,0.12),0_10px_20px_rgba(0,0,0,0.15)] active:shadow-[0_2px_0_rgba(0,0,0,0.08),0_4px_8px_rgba(0,0,0,0.06)] active:translate-y-0.5"
           >
-            <Home className="w-6 h-6 text-blue-500" />
+            <Home className="w-4 h-4" />
           </Button>
-        </div>
+        </motion.div>
       )}
     </div>
   );
