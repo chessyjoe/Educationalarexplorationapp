@@ -174,6 +174,9 @@ export default function App() {
           onStartExploring={handleStartExploring}
           onViewBoard={handleViewBoard}
           onOpenParentDashboard={handleOpenParentDashboard}
+          onOpenChat={handleOpenChat}
+          onOpenVoiceMode={handleOpenVoiceMode}
+          onOpenLiveDiscovery={handleOpenLiveDiscovery}
           discoveryCount={profile.discoveries.length}
           badgeCount={unlockedBadges}
         />
