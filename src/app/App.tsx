@@ -15,7 +15,15 @@ import { recognizeImage } from './services/recognitionService';
 import type { UserProfile, Discovery } from './types';
 import { toast, Toaster } from 'sonner';
 
-type Screen = 'onboarding' | 'welcome' | 'camera' | 'result' | 'board' | 'parent' | 'chat' | 'voice' | 'live';
+type Screen = 'onboarding' | 'welcome' | 'camera' | 'result' | 'board' | 'parent' | 'chat' | 'voice' | 'live' | 'live-results';
+
+interface SessionDiscovery {
+  id: string;
+  name: string;
+  timestamp: Date;
+  confidence: number;
+  selected: boolean;
+}
 
 export default function App() {
   const [currentScreen, setCurrentScreen] = useState<Screen>(() => {
@@ -27,6 +35,7 @@ export default function App() {
   const [isProcessing, setIsProcessing] = useState(false);
   const [currentDiscovery, setCurrentDiscovery] = useState<Discovery | null>(null);
   const [selectedDiscovery, setSelectedDiscovery] = useState<Discovery | null>(null);
+  const [sessionDiscoveries, setSessionDiscoveries] = useState<SessionDiscovery[]>([]);
 
   // Save profile whenever it changes
   useEffect(() => {
