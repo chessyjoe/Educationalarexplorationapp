@@ -74,6 +74,22 @@ export default function App() {
     }
   };
 
+  const handleLiveSessionComplete = (discoveries: SessionDiscovery[]) => {
+    setSessionDiscoveries(discoveries);
+    setCurrentScreen('live-results');
+  };
+
+  const handleLiveResultsConfirm = (selectedDiscoveries: SessionDiscovery[]) => {
+    // For now, just show a toast and go back to camera
+    if (selectedDiscoveries.length > 0) {
+      toast.success(`Saved ${selectedDiscoveries.length} discovery${selectedDiscoveries.length !== 1 ? 'ies' : ''}!`, {
+        description: 'Added to your board!'
+      });
+    }
+    setCurrentScreen('camera');
+    setSessionDiscoveries([]);
+  };
+
   const handleCapture = async () => {
     setIsProcessing(true);
     
