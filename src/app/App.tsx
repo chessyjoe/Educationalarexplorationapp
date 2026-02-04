@@ -184,6 +184,9 @@ export default function App() {
           onCapture={handleCapture}
           isProcessing={isProcessing}
           onBack={handleBackToWelcome}
+          onOpenChat={handleOpenChat}
+          onOpenVoiceMode={handleOpenVoiceMode}
+          onOpenLiveDiscovery={handleOpenLiveDiscovery}
         />
       )}
 
