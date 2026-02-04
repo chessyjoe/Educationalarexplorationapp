@@ -112,7 +112,7 @@ export function WelcomeScreen({
         <Button
           size="lg"
           onClick={onStartExploring}
-          className="w-full h-16 text-xl bg-gradient-to-r from-green-500 to-blue-500 hover:from-green-600 hover:to-blue-600 text-white shadow-2xl"
+          className="w-full text-lg bg-gradient-to-r from-green-500 to-blue-500 hover:from-green-600 hover:to-blue-600 text-white shadow-[0_10px_0_rgba(0,0,0,0.15),0_14px_28px_rgba(0,0,0,0.15)] hover:shadow-[0_14px_0_rgba(0,0,0,0.15),0_18px_32px_rgba(0,0,0,0.2)] active:shadow-[0_4px_0_rgba(0,0,0,0.1),0_6px_12px_rgba(0,0,0,0.08)] active:translate-y-1 rounded-[1.5rem]"
         >
           <Camera className="w-8 h-8 mr-3" />
           Start Exploring!
@@ -121,13 +121,12 @@ export function WelcomeScreen({
         <Button
           size="lg"
           onClick={onViewBoard}
-          variant="outline"
-          className="w-full h-16 text-xl bg-white/95 hover:bg-white shadow-xl"
+          className="w-full text-lg bg-white/95 hover:bg-white text-gray-800 shadow-[0_10px_0_rgba(0,0,0,0.1),0_14px_28px_rgba(0,0,0,0.12)] hover:shadow-[0_14px_0_rgba(0,0,0,0.12),0_18px_32px_rgba(0,0,0,0.15)] active:shadow-[0_4px_0_rgba(0,0,0,0.08),0_6px_12px_rgba(0,0,0,0.06)] active:translate-y-1 rounded-[1.5rem]"
         >
           <Sparkles className="w-8 h-8 mr-3 text-purple-500" />
           My Museum
           {discoveryCount > 0 && (
-            <span className="ml-2 bg-purple-500 text-white px-3 py-1 rounded-full text-sm">
+            <span className="ml-2 bg-purple-500 text-white px-4 py-1 rounded-full text-sm font-bold">
               {discoveryCount}
             </span>
           )}
