@@ -43,25 +43,68 @@ export function LiveDiscovery({ profile, onBack, onDiscovery, onSessionComplete 
   ]);
 
   const toggleLiveMode = () => {
-    setIsRunning(!isRunning);
     if (!isRunning) {
+      // Starting session
+      setIsRunning(true);
       setDiscoveredCount(0);
       setSessionTime(0);
+      setSessionDiscoveries([]);
+      setPipMessage('Scanning for discoveries...');
+      setPipEmotion('excited');
+    } else {
+      // Stopping session - show results preview
+      setIsRunning(false);
+      setPipMessage('Great job! Let\'s see what you found.');
+      setPipEmotion('happy');
+      if (onSessionComplete && sessionDiscoveries.length > 0) {
+        // Will be called to show results screen
+        onSessionComplete(sessionDiscoveries);
+      }
     }
   };
 
-  // Simulate continuous discovery
+  // Simulate continuous discovery with session tracking
   useEffect(() => {
     let interval: NodeJS.Timeout;
 
     if (isRunning) {
       interval = setInterval(() => {
-        setSessionTime(t => t + 1);
-        
+        setSessionTime(t => {
+          const newTime = t + 1;
+
+          // Auto-stop at max duration
+          if (newTime >= MAX_SESSION_DURATION) {
+            setIsRunning(false);
+            setPipMessage('Time\'s up! Let\'s check your discoveries.');
+            setPipEmotion('happy');
+            return t;
+          }
+
+          return newTime;
+        });
+
         // Randomly trigger new discoveries
         if (Math.random() < 0.15) {
+          const discoveryNames = [
+            'Oak Tree', 'Butterfly', 'Rose Flower', 'Sparrow', 'Fern',
+            'Beetle', 'Daisy', 'Pine Tree', 'Ant', 'Tulip'
+          ];
+          const randomName = discoveryNames[Math.floor(Math.random() * discoveryNames.length)];
+
           setDiscoveredCount(prev => {
             const newCount = prev + 1;
+
+            // Add to session discoveries
+            const newDiscovery: SessionDiscovery = {
+              id: `discovery-${newCount}-${Date.now()}`,
+              name: randomName,
+              timestamp: new Date(),
+              confidence: Math.round(70 + Math.random() * 30), // 70-100%
+              selected: true
+            };
+
+            setSessionDiscoveries(prev => [...prev, newDiscovery]);
+
             onDiscovery(newCount);
             return newCount;
           });
@@ -81,7 +124,7 @@ export function LiveDiscovery({ profile, onBack, onDiscovery, onSessionComplete 
     }
 
     return () => clearInterval(interval);
-  }, [isRunning, onDiscovery]);
+  }, [isRunning, onDiscovery, onSessionComplete]);
 
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
