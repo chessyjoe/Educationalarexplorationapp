@@ -423,10 +423,7 @@ export function CameraInterface({
               aria-label="Voice mode"
               className="w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-black/40 border-2 border-white/30 text-white flex items-center justify-center flex-col transition-all hover:border-white/50 active:bg-black/60"
             >
-              <svg className="w-5 h-5 sm:w-6 sm:h-6 mb-1" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z" />
-                <path d="M17 16.91c-1.48 1.46-3.51 2.36-5.77 2.36-2.26 0-4.29-.9-5.77-2.36l-1.1 1.1c1.86 1.86 4.41 3 7.07 3s5.21-1.14 7.07-3l-1.1-1.1zM19.5 9.5h-2c0 3.03-2.47 5.5-5.5 5.5S6.5 12.53 6.5 9.5h-2c0 4.04 3.06 7.35 7 7.73v3.27h2v-3.27c3.94-.38 7-3.69 7-7.73z" />
-              </svg>
+              <Mic className="w-5 h-5 sm:w-6 sm:h-6 mb-1" />
               <span className="text-xs font-semibold hidden sm:block">Voice</span>
             </motion.button>
 
@@ -439,9 +436,7 @@ export function CameraInterface({
               aria-label="Chat mode"
               className="w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-black/40 border-2 border-white/30 text-white flex items-center justify-center flex-col transition-all hover:border-white/50 active:bg-black/60"
             >
-              <svg className="w-5 h-5 sm:w-6 sm:h-6 mb-1" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M20 2H4c-1.1 0-1.99.9-1.99 2L2 22l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z" />
-              </svg>
+              <MessageCircle className="w-5 h-5 sm:w-6 sm:h-6 mb-1" />
               <span className="text-xs font-semibold hidden sm:block">Chat</span>
             </motion.button>
           </div>
