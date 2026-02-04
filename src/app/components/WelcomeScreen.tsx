@@ -136,7 +136,7 @@ export function WelcomeScreen({
             initial={{ scale: 0 }}
             animate={{ scale: 1 }}
             transition={{ delay: 0.8, type: 'spring' }}
-            className="bg-white/95 rounded-2xl p-4 shadow-xl flex items-center justify-center gap-3"
+            className="bg-white/95 rounded-[1.5rem] p-4 shadow-[0_6px_0_rgba(0,0,0,0.08),0_10px_20px_rgba(0,0,0,0.1)] flex items-center justify-center gap-3"
           >
             <Trophy className="w-8 h-8 text-yellow-500" />
             <div>
