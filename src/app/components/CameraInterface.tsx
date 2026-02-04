@@ -244,24 +244,36 @@ export function CameraInterface({
         </motion.div>
       )}
 
-      {/* Pip mascot with speech bubble - bottom left */}
+      {/* Pip mascot with speech bubble - bottom left, responsive */}
       {!isProcessing && (
-        <div className="absolute bottom-48 left-6 z-10 flex items-end gap-3">
+        <div className="absolute bottom-32 sm:bottom-40 left-4 sm:left-6 z-10 flex items-end gap-2 sm:gap-3">
           {/* Pip avatar */}
           <motion.div
-            className="w-16 h-16 rounded-full bg-gradient-to-br from-teal-400 to-cyan-500 border-4 border-white flex items-center justify-center shadow-lg"
+            className="flex-shrink-0 w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-gradient-to-br from-teal-400 to-cyan-500 border-4 border-white flex items-center justify-center shadow-lg"
+            animate={{
+              scale: [1, 1.05, 1],
+              rotate: pipEmotion === 'excited' ? [0, -3, 3, 0] : 0
+            }}
+            transition={{
+              duration: pipEmotion === 'excited' ? 0.6 : 2,
+              repeat: Infinity
+            }}
             whileTap={{ scale: 0.95 }}
           >
-            <div className="text-2xl">😊</div>
+            <div className="text-xl sm:text-2xl">
+              {pipEmotion === 'excited' ? '😄' : pipEmotion === 'thinking' ? '🤔' : '😊'}
+            </div>
           </motion.div>
 
-          {/* Speech bubble */}
+          {/* Speech bubble - responsive width and text */}
           <motion.div
-            className="bg-white rounded-3xl rounded-bl-none px-5 py-3 shadow-lg max-w-[240px]"
+            className="bg-white rounded-3xl rounded-bl-none px-4 sm:px-5 py-2.5 sm:py-3 shadow-lg max-w-[200px] sm:max-w-[240px]"
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
+            transition={{ type: 'spring', damping: 12 }}
+            key={pipMessage}
           >
-            <p className="text-gray-900 font-semibold text-sm leading-tight">
+            <p className="text-gray-900 font-semibold text-xs sm:text-sm leading-tight break-words">
               {pipMessage}
             </p>
           </motion.div>
