@@ -418,8 +418,7 @@ export function CameraInterface({
             <motion.button
               whileTap={{ scale: 0.95 }}
               whileHover={{ scale: 1.05 }}
-              onClick={handleModeChange}
-              onClickCapture={() => handleModeChange('voice')}
+              onClick={() => handleModeChange('voice')}
               title="Voice mode"
               aria-label="Voice mode"
               className="w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-black/40 border-2 border-white/30 text-white flex items-center justify-center flex-col transition-all hover:border-white/50 active:bg-black/60"
@@ -435,8 +434,7 @@ export function CameraInterface({
             <motion.button
               whileTap={{ scale: 0.95 }}
               whileHover={{ scale: 1.05 }}
-              onClick={handleModeChange}
-              onClickCapture={() => handleModeChange('chat')}
+              onClick={() => handleModeChange('chat')}
               title="Chat mode"
               aria-label="Chat mode"
               className="w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-black/40 border-2 border-white/30 text-white flex items-center justify-center flex-col transition-all hover:border-white/50 active:bg-black/60"
