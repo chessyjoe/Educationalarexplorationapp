@@ -137,6 +137,36 @@ export function WelcomeScreen({
           )}
         </Button>
 
+        {/* New Interactive Modes */}
+        <div className="grid grid-cols-3 gap-3">
+          <Button
+            size="lg"
+            onClick={onOpenChat}
+            className="text-base bg-gradient-to-br from-pink-400 to-rose-500 hover:from-pink-500 hover:to-rose-600 text-white shadow-[0_6px_0_rgba(0,0,0,0.15),0_10px_20px_rgba(0,0,0,0.15)] hover:shadow-[0_8px_0_rgba(0,0,0,0.15),0_12px_24px_rgba(0,0,0,0.2)] active:shadow-[0_3px_0_rgba(0,0,0,0.1),0_5px_10px_rgba(0,0,0,0.08)] active:translate-y-0.5 rounded-[1.2rem]"
+          >
+            <MessageCircle className="w-6 h-6 mr-2" />
+            Chat
+          </Button>
+
+          <Button
+            size="lg"
+            onClick={onOpenVoiceMode}
+            className="text-base bg-gradient-to-br from-blue-400 to-cyan-500 hover:from-blue-500 hover:to-cyan-600 text-white shadow-[0_6px_0_rgba(0,0,0,0.15),0_10px_20px_rgba(0,0,0,0.15)] hover:shadow-[0_8px_0_rgba(0,0,0,0.15),0_12px_24px_rgba(0,0,0,0.2)] active:shadow-[0_3px_0_rgba(0,0,0,0.1),0_5px_10px_rgba(0,0,0,0.08)] active:translate-y-0.5 rounded-[1.2rem]"
+          >
+            <Mic className="w-6 h-6 mr-2" />
+            Voice
+          </Button>
+
+          <Button
+            size="lg"
+            onClick={onOpenLiveDiscovery}
+            className="text-base bg-gradient-to-br from-amber-400 to-orange-500 hover:from-amber-500 hover:to-orange-600 text-white shadow-[0_6px_0_rgba(0,0,0,0.15),0_10px_20px_rgba(0,0,0,0.15)] hover:shadow-[0_8px_0_rgba(0,0,0,0.15),0_12px_24px_rgba(0,0,0,0.2)] active:shadow-[0_3px_0_rgba(0,0,0,0.1),0_5px_10px_rgba(0,0,0,0.08)] active:translate-y-0.5 rounded-[1.2rem]"
+          >
+            <Zap className="w-6 h-6 mr-2" />
+            Live
+          </Button>
+        </div>
+
         {badgeCount > 0 && (
           <motion.div
             initial={{ scale: 0 }}
