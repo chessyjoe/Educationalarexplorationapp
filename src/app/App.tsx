@@ -215,6 +215,29 @@ export default function App() {
         />
       )}
 
+      {currentScreen === 'chat' && (
+        <ChatScreen
+          profile={profile}
+          onBack={handleBackToWelcome}
+          discoveries={profile.discoveries}
+        />
+      )}
+
+      {currentScreen === 'voice' && (
+        <VoiceMode
+          profile={profile}
+          onBack={handleBackToWelcome}
+        />
+      )}
+
+      {currentScreen === 'live' && (
+        <LiveDiscovery
+          profile={profile}
+          onBack={handleBackToWelcome}
+          onDiscovery={handleLiveDiscovery}
+        />
+      )}
+
       {selectedDiscovery && (
         <DiscoveryDetail
           discovery={selectedDiscovery}
