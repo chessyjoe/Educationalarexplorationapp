@@ -159,7 +159,7 @@ export function CuriosityBoard({ profile, onBack, onCardClick }: CuriosityBoardP
                 <h3 className="text-lg font-semibold mb-3 text-gray-600">In Progress</h3>
                 <div className="space-y-3">
                   {inProgressBadges.map((badge) => (
-                    <div key={badge.id} className="bg-gray-100 border-2 border-gray-200 rounded-2xl p-4">
+                    <div key={badge.id} className="bg-gray-100 border-2 border-gray-200 rounded-[1.5rem] p-4">
                       <div className="flex items-start gap-3">
                         <div className="w-12 h-12 bg-gray-300 rounded-full flex items-center justify-center text-2xl opacity-50">
                           {badge.icon === 'bug' && '🐛'}
