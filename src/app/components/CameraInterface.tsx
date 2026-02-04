@@ -55,47 +55,55 @@ export function CameraInterface({
 
   return (
     <div className="relative w-full h-full bg-gradient-to-b from-sky-200 to-green-100 overflow-hidden">
-      {/* Mode Switcher Tabs */}
-      <div className="absolute top-16 left-0 right-0 z-20 flex justify-center gap-2 px-4">
-        <motion.button
-          onClick={() => handleModeChange('camera')}
-          className={`flex items-center gap-2 px-4 py-2 rounded-[1rem] transition-all ${
-            currentMode === 'camera'
-              ? 'bg-white shadow-lg scale-105'
-              : 'bg-white/70 hover:bg-white/85'
-          }`}
-          whileTap={{ scale: 0.95 }}
-        >
-          <Camera className="w-5 h-5 text-sky-600" />
-          <span className="text-sm font-semibold text-gray-800">Camera</span>
-        </motion.button>
+      {/* Mode Switcher Tabs - Positioned below Pip mascot to avoid overlap */}
+      <div className="absolute top-24 left-0 right-0 z-20 flex justify-center gap-2 px-4 flex-wrap">
+        <motion.div whileTap={{ scale: 0.95 }}>
+          <Button
+            variant={currentMode === 'camera' ? 'default' : 'outline'}
+            size="sm"
+            onClick={() => handleModeChange('camera')}
+            className="flex items-center gap-2 bg-white/95 hover:bg-white text-gray-800 border-0"
+          >
+            <Camera className="w-4 h-4" />
+            <span>Camera</span>
+          </Button>
+        </motion.div>
 
-        <motion.button
-          onClick={() => handleModeChange('chat')}
-          className="flex items-center gap-2 px-4 py-2 rounded-[1rem] bg-white/70 hover:bg-white/85 transition-all"
-          whileTap={{ scale: 0.95 }}
-        >
-          <MessageCircle className="w-5 h-5 text-pink-600" />
-          <span className="text-sm font-semibold text-gray-800">Chat</span>
-        </motion.button>
+        <motion.div whileTap={{ scale: 0.95 }}>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => handleModeChange('chat')}
+            className="flex items-center gap-2 bg-white/80 hover:bg-white/95 text-gray-800 border-0"
+          >
+            <MessageCircle className="w-4 h-4" />
+            <span>Chat</span>
+          </Button>
+        </motion.div>
 
-        <motion.button
-          onClick={() => handleModeChange('voice')}
-          className="flex items-center gap-2 px-4 py-2 rounded-[1rem] bg-white/70 hover:bg-white/85 transition-all"
-          whileTap={{ scale: 0.95 }}
-        >
-          <Mic className="w-5 h-5 text-blue-600" />
-          <span className="text-sm font-semibold text-gray-800">Voice</span>
-        </motion.button>
+        <motion.div whileTap={{ scale: 0.95 }}>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => handleModeChange('voice')}
+            className="flex items-center gap-2 bg-white/80 hover:bg-white/95 text-gray-800 border-0"
+          >
+            <Mic className="w-4 h-4" />
+            <span>Voice</span>
+          </Button>
+        </motion.div>
 
-        <motion.button
-          onClick={() => handleModeChange('live')}
-          className="flex items-center gap-2 px-4 py-2 rounded-[1rem] bg-white/70 hover:bg-white/85 transition-all"
-          whileTap={{ scale: 0.95 }}
-        >
-          <Zap className="w-5 h-5 text-amber-600" />
-          <span className="text-sm font-semibold text-gray-800">Live</span>
-        </motion.button>
+        <motion.div whileTap={{ scale: 0.95 }}>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => handleModeChange('live')}
+            className="flex items-center gap-2 bg-white/80 hover:bg-white/95 text-gray-800 border-0"
+          >
+            <Zap className="w-4 h-4" />
+            <span>Live</span>
+          </Button>
+        </motion.div>
       </div>
       {/* Simulated camera view */}
       <div className="absolute inset-0 flex items-center justify-center">
