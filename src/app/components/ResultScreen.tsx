@@ -147,14 +147,14 @@ export function ResultScreen({ discovery, onAddToBoard, onTryAgain }: ResultScre
         initial={{ opacity: 0, y: 30 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.3 }}
-        className="bg-white rounded-3xl p-6 shadow-2xl mb-6 flex-1 overflow-y-auto"
+        className="bg-white rounded-[2rem] p-6 shadow-[0_10px_0_rgba(0,0,0,0.12),0_15px_30px_rgba(0,0,0,0.15)] mb-6 flex-1 overflow-y-auto"
       >
         <h2 className="text-3xl font-bold text-gray-800 mb-2">{discovery.name}</h2>
         {discovery.scientificName && (
           <p className="text-sm text-gray-500 italic mb-4">{discovery.scientificName}</p>
         )}
 
-        <div className="mb-4 rounded-2xl overflow-hidden bg-gray-100 shadow-lg">
+        <div className="mb-4 rounded-[1.5rem] overflow-hidden bg-gray-100 shadow-[0_4px_12px_rgba(0,0,0,0.1)]">
           <ImageWithFallback
             src={`https://source.unsplash.com/400x300/?${discovery.imageUrl}`}
             alt={discovery.name}
@@ -162,12 +162,12 @@ export function ResultScreen({ discovery, onAddToBoard, onTryAgain }: ResultScre
           />
         </div>
 
-        <div className="bg-blue-50 border-2 border-blue-200 rounded-2xl p-4 mb-4">
+        <div className="bg-blue-50 border-2 border-blue-200 rounded-[1.5rem] p-4 mb-4">
           <p className="text-base leading-relaxed">{discovery.story}</p>
         </div>
 
         {discovery.funFact && (
-          <div className="bg-yellow-50 border-2 border-yellow-200 rounded-2xl p-4 mb-4 flex gap-3">
+          <div className="bg-yellow-50 border-2 border-yellow-200 rounded-[1.5rem] p-4 mb-4 flex gap-3">
             <Sparkles className="w-6 h-6 text-yellow-600 flex-shrink-0 mt-1" />
             <div>
               <p className="font-semibold text-yellow-800 mb-1">Fun Fact!</p>
@@ -177,7 +177,7 @@ export function ResultScreen({ discovery, onAddToBoard, onTryAgain }: ResultScre
         )}
 
         {discovery.followUpActivity && (
-          <div className="bg-purple-50 border-2 border-purple-200 rounded-2xl p-4 flex gap-3">
+          <div className="bg-purple-50 border-2 border-purple-200 rounded-[1.5rem] p-4 flex gap-3">
             <span className="text-2xl">🎯</span>
             <div>
               <p className="font-semibold text-purple-800 mb-1">Try This!</p>
