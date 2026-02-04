@@ -174,17 +174,41 @@ export function CameraInterface({
             LENS MODE
           </motion.button>
 
-          {/* Settings button */}
-          <motion.button
-            whileTap={{ scale: 0.95 }}
-            whileHover={{ scale: 1.05 }}
-            onClick={onBack}
-            title="Settings"
-            aria-label="Settings"
-            className="w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-transparent border-2 border-white/60 text-white flex items-center justify-center transition-all hover:border-white/80"
-          >
-            <Settings className="w-5 h-5 sm:w-6 sm:h-6" />
-          </motion.button>
+          <div className="flex items-center gap-2 sm:gap-3">
+            {/* Gallery button - moved to top */}
+            <motion.button
+              whileTap={{ scale: 0.95 }}
+              onClick={handleGallery}
+              title="Gallery"
+              aria-label="Gallery"
+              className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-black/40 border-2 border-white/30 text-white flex items-center justify-center transition-all hover:border-white/50 active:bg-black/60"
+            >
+              <Image className="w-4 h-4 sm:w-5 sm:h-5" />
+            </motion.button>
+
+            {/* Recent button - moved to top */}
+            <motion.button
+              whileTap={{ scale: 0.95 }}
+              onClick={handleRecent}
+              title="Recent"
+              aria-label="Recent captures"
+              className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-black/40 border-2 border-white/30 text-white flex items-center justify-center transition-all hover:border-white/50 active:bg-black/60"
+            >
+              <Film className="w-4 h-4 sm:w-5 sm:h-5" />
+            </motion.button>
+
+            {/* Settings button */}
+            <motion.button
+              whileTap={{ scale: 0.95 }}
+              whileHover={{ scale: 1.05 }}
+              onClick={onBack}
+              title="Settings"
+              aria-label="Settings"
+              className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-transparent border-2 border-white/60 text-white flex items-center justify-center transition-all hover:border-white/80"
+            >
+              <Settings className="w-4 h-4 sm:w-5 sm:h-5" />
+            </motion.button>
+          </div>
         </div>
 
         {/* Camera flip button - below top controls on mobile */}
