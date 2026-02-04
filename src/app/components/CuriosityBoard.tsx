@@ -133,7 +133,7 @@ export function CuriosityBoard({ profile, onBack, onCardClick }: CuriosityBoardP
                 <h3 className="text-lg font-semibold mb-3 text-green-600">Unlocked! 🎉</h3>
                 <div className="space-y-3">
                   {unlockedBadges.map((badge) => (
-                    <div key={badge.id} className="bg-gradient-to-r from-yellow-100 to-yellow-50 border-2 border-yellow-300 rounded-2xl p-4">
+                    <div key={badge.id} className="bg-gradient-to-r from-yellow-100 to-yellow-50 border-2 border-yellow-300 rounded-[1.5rem] p-4">
                       <div className="flex items-start gap-3">
                         <div className="w-12 h-12 bg-yellow-400 rounded-full flex items-center justify-center text-2xl">
                           {badge.icon === 'bug' && '🐛'}
