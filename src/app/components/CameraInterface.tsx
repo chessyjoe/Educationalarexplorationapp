@@ -188,17 +188,18 @@ export function CameraInterface({
         </motion.button>
       </div>
 
-      {/* Center viewfinder */}
+      {/* Center viewfinder - responsive & interactive */}
       {!isProcessing && (
         <motion.div
           className="absolute inset-0 flex items-center justify-center pointer-events-none"
           initial={{ opacity: 0, scale: 1.1 }}
           animate={{ opacity: 1, scale: 1 }}
         >
-          <div className="relative w-80 h-80">
-            {/* Outer dashed circle */}
-            <svg className="absolute inset-0 w-full h-full" viewBox="0 0 320 320">
-              <circle
+          <div className="relative w-64 h-64 sm:w-80 sm:h-80 md:w-96 md:h-96">
+            {/* Outer dashed circle - responsive stroke */}
+            <svg className="absolute inset-0 w-full h-full" viewBox="0 0 320 320" preserveAspectRatio="xMidYMid meet">
+              {/* Scanning animation circle */}
+              <motion.circle
                 cx="160"
                 cy="160"
                 r="155"
@@ -206,19 +207,66 @@ export function CameraInterface({
                 stroke="white"
                 strokeWidth="3"
                 strokeDasharray="8 8"
-                opacity="0.6"
+                opacity="0.4"
+                animate={{
+                  strokeDashoffset: [0, 32],
+                  opacity: [0.4, 0.7, 0.4]
+                }}
+                transition={{
+                  duration: 3,
+                  repeat: Infinity,
+                  ease: 'linear'
+                }}
+              />
+              {/* Static circle */}
+              <circle
+                cx="160"
+                cy="160"
+                r="155"
+                fill="none"
+                stroke="white"
+                strokeWidth="2"
+                strokeDasharray="8 8"
+                opacity="0.5"
               />
             </svg>
-            
+
             {/* Inner solid circle */}
-            <div className="absolute inset-4 rounded-full border-4 border-white/80" />
-            
-            {/* Center dot */}
             <motion.div
-              className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-4 h-4 rounded-full bg-[#FF9B7A]"
-              animate={{ scale: [1, 1.3, 1] }}
+              className="absolute inset-4 rounded-full border-4 border-white/80"
+              animate={{
+                boxShadow: [
+                  '0 0 0 0px rgba(255, 255, 255, 0.5)',
+                  '0 0 0 8px rgba(255, 255, 255, 0.2)',
+                  '0 0 0 0px rgba(255, 255, 255, 0.5)'
+                ]
+              }}
+              transition={{
+                duration: 2,
+                repeat: Infinity,
+                ease: 'easeInOut'
+              }}
+            />
+
+            {/* Center dot - responsive size */}
+            <motion.div
+              className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-3 h-3 sm:w-4 sm:h-4 rounded-full bg-[#FF9B7A] shadow-lg"
+              animate={{
+                scale: [1, 1.4, 1],
+                boxShadow: [
+                  '0 0 8px 2px rgba(255, 155, 122, 0.5)',
+                  '0 0 16px 4px rgba(255, 155, 122, 0.8)',
+                  '0 0 8px 2px rgba(255, 155, 122, 0.5)'
+                ]
+              }}
               transition={{ duration: 2, repeat: Infinity }}
             />
+
+            {/* Corner focus indicators */}
+            <div className="absolute top-0 left-0 w-6 h-6 border-t-2 border-l-2 border-white/60 rounded-tl-lg" />
+            <div className="absolute top-0 right-0 w-6 h-6 border-t-2 border-r-2 border-white/60 rounded-tr-lg" />
+            <div className="absolute bottom-0 left-0 w-6 h-6 border-b-2 border-l-2 border-white/60 rounded-bl-lg" />
+            <div className="absolute bottom-0 right-0 w-6 h-6 border-b-2 border-r-2 border-white/60 rounded-br-lg" />
           </div>
         </motion.div>
       )}
