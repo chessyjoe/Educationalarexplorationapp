@@ -204,6 +204,7 @@ export function CuriosityBoard({ profile, onBack, onCardClick }: CuriosityBoardP
           </div>
         ) : (
           <div className="grid grid-cols-2 gap-4 pb-4">
+            {/* Discovered cards */}
             {sortedDiscoveries.map((discovery, index) => (
               <motion.div
                 key={discovery.id}
@@ -213,7 +214,7 @@ export function CuriosityBoard({ profile, onBack, onCardClick }: CuriosityBoardP
                 onClick={() => onCardClick(discovery)}
                 className="cursor-pointer"
               >
-                <div className="bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-2xl transition-shadow">
+                <div className="bg-white rounded-[1.5rem] shadow-[0_4px_0_rgba(0,0,0,0.08),0_8px_16px_rgba(0,0,0,0.1)] overflow-hidden hover:shadow-[0_8px_0_rgba(0,0,0,0.1),0_12px_24px_rgba(0,0,0,0.15)] transition-shadow">
                   <div className="relative h-40 bg-gray-100">
                     <ImageWithFallback
                       src={`https://source.unsplash.com/300x300/?${discovery.imageUrl}`}
