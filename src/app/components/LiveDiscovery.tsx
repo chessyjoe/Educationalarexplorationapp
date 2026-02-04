@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion } from 'motion/react';
 import { Zap, ArrowLeft, BarChart3, Pause, Play } from 'lucide-react';
 import { Button } from './ui/button';
