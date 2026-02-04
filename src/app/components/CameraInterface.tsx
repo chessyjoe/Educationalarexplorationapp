@@ -364,84 +364,92 @@ export function CameraInterface({
         </div>
       )}
 
-      {/* Bottom controls - responsive layout */}
+      {/* Bottom controls - Main capture button with mode selection below */}
       {!isProcessing && (
-        <div className="absolute bottom-0 left-0 right-0 z-10 pb-4 sm:pb-8">
-          {/* Swipe for modes text */}
-          <div className="text-center mb-3 sm:mb-4">
-            <p className="text-white text-xs font-semibold tracking-wider opacity-80">
-              SWIPE FOR MODES
-            </p>
-          </div>
+        <div className="absolute bottom-0 left-0 right-0 z-10 pb-6 sm:pb-8 flex flex-col items-center">
+          {/* Main capture button - centered and largest */}
+          <motion.button
+            whileTap={{ scale: 0.92 }}
+            whileHover={{ scale: 1.05 }}
+            onClick={onCapture}
+            title="Capture photo"
+            aria-label="Capture photo"
+            className="relative w-20 h-20 sm:w-24 sm:h-24 flex items-center justify-center flex-shrink-0 mb-6 sm:mb-8"
+          >
+            {/* Outer ring */}
+            <div className="absolute inset-0 rounded-full border-4 border-white" />
+            {/* Middle ring */}
+            <div className="absolute inset-2 rounded-full bg-gradient-to-br from-[#FF9B7A] to-[#FFA88A] border-4 border-white" />
+            {/* Inner content */}
+            <div className="absolute inset-4 rounded-full border-2 border-white/40 flex items-center justify-center">
+              <Focus className="w-6 h-6 sm:w-7 sm:h-7 text-white" />
+            </div>
+          </motion.button>
 
-          {/* Control buttons - responsive grid/flex */}
-          <div className="flex items-center justify-center gap-4 sm:gap-6 md:gap-8 px-4 sm:px-6">
-            {/* Gallery */}
-            <motion.button
-              whileTap={{ scale: 0.95 }}
-              onClick={handleGallery}
-              title="Gallery"
-              aria-label="Gallery"
-              className="w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-black/40 border-2 border-white/30 text-white flex items-center justify-center transition-all hover:border-white/50 active:bg-black/60"
-            >
-              <Image className="w-5 h-5 sm:w-6 sm:h-6" />
-            </motion.button>
-
-            {/* Recent captures */}
-            <motion.button
-              whileTap={{ scale: 0.95 }}
-              onClick={handleRecent}
-              title="Recent"
-              aria-label="Recent captures"
-              className="w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-black/40 border-2 border-white/30 text-white flex items-center justify-center transition-all hover:border-white/50 active:bg-black/60"
-            >
-              <Film className="w-5 h-5 sm:w-5 sm:h-5" />
-            </motion.button>
-
-            {/* Main capture button - largest, centered */}
-            <motion.button
-              whileTap={{ scale: 0.92 }}
-              whileHover={{ scale: 1.05 }}
-              onClick={onCapture}
-              title="Capture photo"
-              aria-label="Capture photo"
-              className="relative w-16 h-16 sm:w-20 sm:h-20 flex items-center justify-center flex-shrink-0"
-            >
-              {/* Outer ring */}
-              <div className="absolute inset-0 rounded-full border-4 border-white" />
-              {/* Middle ring */}
-              <div className="absolute inset-2 rounded-full bg-gradient-to-br from-[#FF9B7A] to-[#FFA88A] border-4 border-white" />
-              {/* Inner content */}
-              <div className="absolute inset-4 rounded-full border-2 border-white/40 flex items-center justify-center">
-                <Focus className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
-              </div>
-            </motion.button>
-
+          {/* Mode selection buttons - 2x2 grid */}
+          <div className="grid grid-cols-2 gap-4 sm:gap-6 px-4 sm:px-6">
             {/* Photo mode */}
             <motion.button
               whileTap={{ scale: 0.95 }}
+              whileHover={{ scale: 1.05 }}
               onClick={handlePhotoMode}
               title="Photo mode"
               aria-label="Photo mode"
-              className="w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-black/40 border-2 border-white/30 text-white flex items-center justify-center transition-all hover:border-white/50 active:bg-black/60"
+              className="w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-black/40 border-2 border-white/30 text-white flex items-center justify-center flex-col transition-all hover:border-white/50 active:bg-black/60"
             >
-              <Camera className="w-5 h-5 sm:w-6 sm:h-6" />
+              <Camera className="w-5 h-5 sm:w-6 sm:h-6 mb-1" />
+              <span className="text-xs font-semibold hidden sm:block">Photo</span>
             </motion.button>
 
             {/* Discovery mode */}
             <motion.button
               whileTap={{ scale: 0.95 }}
+              whileHover={{ scale: 1.05 }}
               onClick={handleDiscoveryMode}
               title="Discovery mode"
               aria-label="Live discovery mode"
-              className="w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-black/40 border-2 border-white/30 text-white flex items-center justify-center transition-all hover:border-white/50 active:bg-black/60"
+              className="w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-black/40 border-2 border-white/30 text-white flex items-center justify-center flex-col transition-all hover:border-white/50 active:bg-black/60"
             >
-              <Leaf className="w-5 h-5 sm:w-6 sm:h-6" />
+              <Leaf className="w-5 h-5 sm:w-6 sm:h-6 mb-1" />
+              <span className="text-xs font-semibold hidden sm:block">Discovery</span>
+            </motion.button>
+
+            {/* Voice mode */}
+            <motion.button
+              whileTap={{ scale: 0.95 }}
+              whileHover={{ scale: 1.05 }}
+              onClick={handleModeChange}
+              onClickCapture={() => handleModeChange('voice')}
+              title="Voice mode"
+              aria-label="Voice mode"
+              className="w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-black/40 border-2 border-white/30 text-white flex items-center justify-center flex-col transition-all hover:border-white/50 active:bg-black/60"
+            >
+              <svg className="w-5 h-5 sm:w-6 sm:h-6 mb-1" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z" />
+                <path d="M17 16.91c-1.48 1.46-3.51 2.36-5.77 2.36-2.26 0-4.29-.9-5.77-2.36l-1.1 1.1c1.86 1.86 4.41 3 7.07 3s5.21-1.14 7.07-3l-1.1-1.1zM19.5 9.5h-2c0 3.03-2.47 5.5-5.5 5.5S6.5 12.53 6.5 9.5h-2c0 4.04 3.06 7.35 7 7.73v3.27h2v-3.27c3.94-.38 7-3.69 7-7.73z" />
+              </svg>
+              <span className="text-xs font-semibold hidden sm:block">Voice</span>
+            </motion.button>
+
+            {/* Chat mode */}
+            <motion.button
+              whileTap={{ scale: 0.95 }}
+              whileHover={{ scale: 1.05 }}
+              onClick={handleModeChange}
+              onClickCapture={() => handleModeChange('chat')}
+              title="Chat mode"
+              aria-label="Chat mode"
+              className="w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-black/40 border-2 border-white/30 text-white flex items-center justify-center flex-col transition-all hover:border-white/50 active:bg-black/60"
+            >
+              <svg className="w-5 h-5 sm:w-6 sm:h-6 mb-1" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M20 2H4c-1.1 0-1.99.9-1.99 2L2 22l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z" />
+              </svg>
+              <span className="text-xs font-semibold hidden sm:block">Chat</span>
             </motion.button>
           </div>
 
           {/* Home indicator bar */}
-          <div className="flex justify-center mt-4 sm:mt-6">
+          <div className="flex justify-center mt-6 sm:mt-8">
             <div className="w-24 sm:w-32 h-1 bg-white/40 rounded-full" />
           </div>
         </div>
