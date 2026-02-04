@@ -36,7 +36,7 @@ export function LiveDiscovery({ profile, onBack, onDiscovery }: LiveDiscoveryPro
   };
 
   // Simulate continuous discovery
-  React.useEffect(() => {
+  useEffect(() => {
     let interval: NodeJS.Timeout;
 
     if (isRunning) {
