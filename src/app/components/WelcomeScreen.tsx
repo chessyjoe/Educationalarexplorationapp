@@ -1,5 +1,5 @@
 import { motion } from 'motion/react';
-import { Camera, Sparkles, Trophy, Settings, MessageCircle, Zap, Mic } from 'lucide-react';
+import { Camera, Sparkles, Trophy, Settings } from 'lucide-react';
 import { Button } from './ui/button';
 import { PipMascot } from './PipMascot';
 
