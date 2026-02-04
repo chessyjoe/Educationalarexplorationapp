@@ -386,8 +386,8 @@ export function CameraInterface({
             </div>
           </motion.button>
 
-          {/* Mode selection buttons - 2x2 grid */}
-          <div className="grid grid-cols-2 gap-4 sm:gap-6 px-4 sm:px-6">
+          {/* Mode selection buttons - responsive flex layout */}
+          <div className="flex flex-wrap justify-center gap-4 sm:gap-6 px-4 sm:px-6">
             {/* Photo mode */}
             <motion.button
               whileTap={{ scale: 0.95 }}
