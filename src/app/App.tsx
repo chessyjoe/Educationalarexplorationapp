@@ -9,6 +9,7 @@ import { DiscoveryDetail } from './components/DiscoveryDetail';
 import { ChatScreen } from './components/ChatScreen';
 import { VoiceMode } from './components/VoiceMode';
 import { LiveDiscovery } from './components/LiveDiscovery';
+import { LiveDiscoveryResults } from './components/LiveDiscoveryResults';
 import { loadUserProfile, saveUserProfile, addDiscovery, getDefaultProfile } from './utils/storage';
 import { recognizeImage } from './services/recognitionService';
 import type { UserProfile, Discovery } from './types';
