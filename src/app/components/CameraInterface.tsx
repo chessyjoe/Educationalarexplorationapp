@@ -1,5 +1,5 @@
 import { useState, useRef } from 'react';
-import { Camera, Focus, Loader2, Settings, Zap, RotateCcw, Image, Film, Leaf } from 'lucide-react';
+import { Camera, Focus, Loader2, Settings, Zap, RotateCcw, Image, Film, Leaf, Mic, MessageCircle } from 'lucide-react';
 import { motion } from 'motion/react';
 import { PipMascot } from './PipMascot';
 import { Button } from './ui/button';
