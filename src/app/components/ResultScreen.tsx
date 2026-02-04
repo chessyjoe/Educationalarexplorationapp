@@ -52,13 +52,13 @@ export function ResultScreen({ discovery, onAddToBoard, onTryAgain }: ResultScre
           <PipMascot message="Careful! This one can hurt you!" emotion="warning" size="large" />
         </div>
 
-        <div className="bg-white rounded-3xl p-6 max-w-md shadow-2xl mb-6">
+        <div className="bg-white rounded-[2rem] p-6 max-w-md shadow-[0_10px_0_rgba(0,0,0,0.12),0_15px_30px_rgba(0,0,0,0.15)] mb-6">
           <h3 className="text-2xl font-bold text-red-600 mb-2">{discovery.name}</h3>
           {discovery.scientificName && (
             <p className="text-sm text-gray-500 italic mb-4">{discovery.scientificName}</p>
           )}
-          
-          <div className="mb-4 rounded-2xl overflow-hidden bg-gray-100">
+
+          <div className="mb-4 rounded-[1.5rem] overflow-hidden bg-gray-100">
             <ImageWithFallback
               src={`https://source.unsplash.com/400x300/?${discovery.imageUrl}`}
               alt={discovery.name}
@@ -66,12 +66,12 @@ export function ResultScreen({ discovery, onAddToBoard, onTryAgain }: ResultScre
             />
           </div>
 
-          <div className="bg-red-50 border-2 border-red-200 rounded-2xl p-4 mb-4">
+          <div className="bg-red-50 border-2 border-red-200 rounded-[1.5rem] p-4 mb-4">
             <p className="text-base leading-relaxed">{discovery.story}</p>
           </div>
 
           {discovery.funFact && (
-            <div className="bg-yellow-50 border-2 border-yellow-200 rounded-2xl p-4 flex gap-3">
+            <div className="bg-yellow-50 border-2 border-yellow-200 rounded-[1.5rem] p-4 flex gap-3">
               <Sparkles className="w-5 h-5 text-yellow-600 flex-shrink-0 mt-1" />
               <p className="text-sm leading-relaxed">{discovery.funFact}</p>
             </div>
