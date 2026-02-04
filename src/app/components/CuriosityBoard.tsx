@@ -246,6 +246,28 @@ export function CuriosityBoard({ profile, onBack, onCardClick }: CuriosityBoardP
                 </div>
               </motion.div>
             ))}
+
+            {/* Locked/Undiscovered cards for sticker book effect */}
+            {[1, 2, 3, 4].map((index) => (
+              sortedDiscoveries.length + index <= 12 && (
+                <motion.div
+                  key={`locked-${index}`}
+                  initial={{ opacity: 0, scale: 0.8 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ delay: (sortedDiscoveries.length + index) * 0.05 }}
+                  className="cursor-default"
+                >
+                  <div className="bg-gradient-to-br from-gray-400 to-gray-600 rounded-[1.5rem] shadow-[0_4px_0_rgba(0,0,0,0.15),0_8px_16px_rgba(0,0,0,0.2)] overflow-hidden h-56 flex items-center justify-center group relative">
+                    <div className="absolute inset-0 bg-black/20 group-hover:bg-black/30 transition-all" />
+                    <div className="relative z-10 flex flex-col items-center justify-center text-center">
+                      <div className="text-6xl mb-3 opacity-60">❓</div>
+                      <p className="text-white/80 font-bold text-sm px-3">Discovery {sortedDiscoveries.length + index}</p>
+                      <p className="text-white/60 text-xs mt-2 px-3">Keep exploring to unlock!</p>
+                    </div>
+                  </div>
+                </motion.div>
+              )
+            ))}
           </div>
         )}
       </div>
