@@ -1,14 +1,15 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion } from 'motion/react';
-import { Zap, ArrowLeft, BarChart3, Pause, Play } from 'lucide-react';
+import { Zap, ArrowLeft, Pause, Play, Clock } from 'lucide-react';
 import { Button } from './ui/button';
 import { PipMascot } from './PipMascot';
-import type { UserProfile } from '@/app/types';
+import type { UserProfile, Discovery } from '@/app/types';
 
 interface LiveDiscoveryProps {
   profile: UserProfile;
   onBack: () => void;
   onDiscovery: (count: number) => void;
+  onSessionComplete?: (sessionDiscoveries: SessionDiscovery[]) => void;
 }
 
 interface LiveStat {
@@ -17,10 +18,24 @@ interface LiveStat {
   icon: string;
 }
 
-export function LiveDiscovery({ profile, onBack, onDiscovery }: LiveDiscoveryProps) {
+interface SessionDiscovery {
+  id: string;
+  name: string;
+  timestamp: Date;
+  confidence: number;
+  selected: boolean;
+}
+
+const MAX_SESSION_DURATION = 5 * 60; // 5 minutes in seconds
+const SESSION_STORAGE_KEY = 'live_discovery_session';
+
+export function LiveDiscovery({ profile, onBack, onDiscovery, onSessionComplete }: LiveDiscoveryProps) {
   const [isRunning, setIsRunning] = useState(false);
   const [discoveredCount, setDiscoveredCount] = useState(0);
   const [sessionTime, setSessionTime] = useState(0);
+  const [sessionDiscoveries, setSessionDiscoveries] = useState<SessionDiscovery[]>([]);
+  const [pipMessage, setPipMessage] = useState('Ready to discover? Let\'s go!');
+  const [pipEmotion, setPipEmotion] = useState<'happy' | 'excited' | 'thinking' | 'warning'>('happy');
   const [stats, setStats] = useState<LiveStat[]>([
     { label: 'Discoveries Today', value: 0, icon: '🔍' },
     { label: 'New Species', value: 0, icon: '🆕' },
@@ -28,25 +43,68 @@ export function LiveDiscovery({ profile, onBack, onDiscovery }: LiveDiscoveryPro
   ]);
 
   const toggleLiveMode = () => {
-    setIsRunning(!isRunning);
     if (!isRunning) {
+      // Starting session
+      setIsRunning(true);
       setDiscoveredCount(0);
       setSessionTime(0);
+      setSessionDiscoveries([]);
+      setPipMessage('Scanning for discoveries...');
+      setPipEmotion('excited');
+    } else {
+      // Stopping session - show results preview
+      setIsRunning(false);
+      setPipMessage('Great job! Let\'s see what you found.');
+      setPipEmotion('happy');
+      if (onSessionComplete && sessionDiscoveries.length > 0) {
+        // Will be called to show results screen
+        onSessionComplete(sessionDiscoveries);
+      }
     }
   };
 
-  // Simulate continuous discovery
-  React.useEffect(() => {
+  // Simulate continuous discovery with session tracking
+  useEffect(() => {
     let interval: NodeJS.Timeout;
 
     if (isRunning) {
       interval = setInterval(() => {
-        setSessionTime(t => t + 1);
-        
+        setSessionTime(t => {
+          const newTime = t + 1;
+
+          // Auto-stop at max duration
+          if (newTime >= MAX_SESSION_DURATION) {
+            setIsRunning(false);
+            setPipMessage('Time\'s up! Let\'s check your discoveries.');
+            setPipEmotion('happy');
+            return t;
+          }
+
+          return newTime;
+        });
+
         // Randomly trigger new discoveries
         if (Math.random() < 0.15) {
+          const discoveryNames = [
+            'Oak Tree', 'Butterfly', 'Rose Flower', 'Sparrow', 'Fern',
+            'Beetle', 'Daisy', 'Pine Tree', 'Ant', 'Tulip'
+          ];
+          const randomName = discoveryNames[Math.floor(Math.random() * discoveryNames.length)];
+
           setDiscoveredCount(prev => {
             const newCount = prev + 1;
+
+            // Add to session discoveries
+            const newDiscovery: SessionDiscovery = {
+              id: `discovery-${newCount}-${Date.now()}`,
+              name: randomName,
+              timestamp: new Date(),
+              confidence: Math.round(70 + Math.random() * 30), // 70-100%
+              selected: true
+            };
+
+            setSessionDiscoveries(prev => [...prev, newDiscovery]);
+
             onDiscovery(newCount);
             return newCount;
           });
@@ -66,7 +124,7 @@ export function LiveDiscovery({ profile, onBack, onDiscovery }: LiveDiscoveryPro
     }
 
     return () => clearInterval(interval);
-  }, [isRunning, onDiscovery]);
+  }, [isRunning, onDiscovery, onSessionComplete]);
 
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
@@ -93,14 +151,14 @@ export function LiveDiscovery({ profile, onBack, onDiscovery }: LiveDiscoveryPro
 
       {/* Main Content */}
       <div className="flex-1 overflow-y-auto flex flex-col items-center justify-center p-6 space-y-6">
-        {/* Pip Mascot */}
+        {/* Pip Mascot - responsive */}
         <motion.div
           animate={{ scale: isRunning ? [1, 1.05, 1] : 1 }}
-          transition={{ duration: isRunning ? 1.5 : 0, repeat: isRunning ? Infinity : 0 }}
+          transition={{ duration: isRunning ? 1.5 : 0.5, repeat: isRunning ? Infinity : 0 }}
         >
           <PipMascot
-            message={isRunning ? 'Scanning for discoveries...' : 'Ready to discover? Let\'s go!'}
-            emotion={isRunning ? 'excited' : 'happy'}
+            message={pipMessage}
+            emotion={pipEmotion}
             size="large"
           />
         </motion.div>
@@ -152,14 +210,37 @@ export function LiveDiscovery({ profile, onBack, onDiscovery }: LiveDiscoveryPro
           </motion.div>
         </div>
 
-        {/* Session Timer */}
-        <motion.div
-          className="text-4xl font-bold text-white drop-shadow-lg tracking-wider"
-          animate={{ scale: isRunning ? [1, 1.05, 1] : 1 }}
-          transition={{ duration: 2, repeat: isRunning ? Infinity : 0 }}
-        >
-          {formatTime(sessionTime)}
-        </motion.div>
+        {/* Session Timer with time limit indicator */}
+        <div className="space-y-3">
+          <motion.div
+            className="text-4xl font-bold text-white drop-shadow-lg tracking-wider"
+            animate={{ scale: isRunning ? [1, 1.05, 1] : 1 }}
+            transition={{ duration: 2, repeat: isRunning ? Infinity : 0 }}
+          >
+            {formatTime(sessionTime)} / {formatTime(MAX_SESSION_DURATION)}
+          </motion.div>
+
+          {/* Time remaining indicator */}
+          {isRunning && (
+            <motion.div className="flex items-center justify-center gap-2">
+              <Clock className="w-4 h-4 text-white opacity-70" />
+              <div className="w-48 h-2 bg-white/20 rounded-full overflow-hidden">
+                <motion.div
+                  className={`h-full transition-all ${
+                    sessionTime > MAX_SESSION_DURATION * 0.9
+                      ? 'bg-red-400'
+                      : sessionTime > MAX_SESSION_DURATION * 0.7
+                      ? 'bg-yellow-400'
+                      : 'bg-green-400'
+                  }`}
+                  initial={{ width: 0 }}
+                  animate={{ width: `${(sessionTime / MAX_SESSION_DURATION) * 100}%` }}
+                  transition={{ duration: 0.3 }}
+                />
+              </div>
+            </motion.div>
+          )}
+        </div>
 
         {/* Live Stats */}
         <div className="grid grid-cols-3 gap-4 w-full max-w-md">

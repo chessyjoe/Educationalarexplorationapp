@@ -9,12 +9,21 @@ import { DiscoveryDetail } from './components/DiscoveryDetail';
 import { ChatScreen } from './components/ChatScreen';
 import { VoiceMode } from './components/VoiceMode';
 import { LiveDiscovery } from './components/LiveDiscovery';
+import { LiveDiscoveryResults } from './components/LiveDiscoveryResults';
 import { loadUserProfile, saveUserProfile, addDiscovery, getDefaultProfile } from './utils/storage';
 import { recognizeImage } from './services/recognitionService';
 import type { UserProfile, Discovery } from './types';
 import { toast, Toaster } from 'sonner';
 
-type Screen = 'onboarding' | 'welcome' | 'camera' | 'result' | 'board' | 'parent' | 'chat' | 'voice' | 'live';
+type Screen = 'onboarding' | 'welcome' | 'camera' | 'result' | 'board' | 'parent' | 'chat' | 'voice' | 'live' | 'live-results';
+
+interface SessionDiscovery {
+  id: string;
+  name: string;
+  timestamp: Date;
+  confidence: number;
+  selected: boolean;
+}
 
 export default function App() {
   const [currentScreen, setCurrentScreen] = useState<Screen>(() => {
@@ -26,6 +35,7 @@ export default function App() {
   const [isProcessing, setIsProcessing] = useState(false);
   const [currentDiscovery, setCurrentDiscovery] = useState<Discovery | null>(null);
   const [selectedDiscovery, setSelectedDiscovery] = useState<Discovery | null>(null);
+  const [sessionDiscoveries, setSessionDiscoveries] = useState<SessionDiscovery[]>([]);
 
   // Save profile whenever it changes
   useEffect(() => {
@@ -62,6 +72,22 @@ export default function App() {
         description: 'Keep scanning!'
       });
     }
+  };
+
+  const handleLiveSessionComplete = (discoveries: SessionDiscovery[]) => {
+    setSessionDiscoveries(discoveries);
+    setCurrentScreen('live-results');
+  };
+
+  const handleLiveResultsConfirm = (selectedDiscoveries: SessionDiscovery[]) => {
+    // For now, just show a toast and go back to camera
+    if (selectedDiscoveries.length > 0) {
+      toast.success(`Saved ${selectedDiscoveries.length} discovery${selectedDiscoveries.length !== 1 ? 'ies' : ''}!`, {
+        description: 'Added to your board!'
+      });
+    }
+    setCurrentScreen('camera');
+    setSessionDiscoveries([]);
   };
 
   const handleCapture = async () => {
@@ -235,6 +261,15 @@ export default function App() {
           profile={profile}
           onBack={handleBackToWelcome}
           onDiscovery={handleLiveDiscovery}
+          onSessionComplete={handleLiveSessionComplete}
+        />
+      )}
+
+      {currentScreen === 'live-results' && (
+        <LiveDiscoveryResults
+          discoveries={sessionDiscoveries}
+          onBack={() => setCurrentScreen('live')}
+          onConfirm={handleLiveResultsConfirm}
         />
       )}
 
