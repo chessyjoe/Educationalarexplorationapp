@@ -21,46 +21,19 @@ export function WelcomeScreen({
   badgeCount
 }: WelcomeScreenProps) {
   return (
-    <div className="min-h-screen bg-gradient-to-b from-blue-400 via-purple-400 to-pink-400 flex flex-col items-center justify-center p-6 relative overflow-hidden">
-      {/* Floating elements animation */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        {[...Array(10)].map((_, i) => (
-          <motion.div
-            key={i}
-            className="absolute text-4xl"
-            initial={{
-              x: Math.random() * window.innerWidth,
-              y: -50,
-              opacity: 0.3
-            }}
-            animate={{
-              y: window.innerHeight + 50,
-              rotate: 360
-            }}
-            transition={{
-              duration: 10 + Math.random() * 10,
-              repeat: Infinity,
-              delay: i * 2,
-              ease: 'linear'
-            }}
-          >
-            {['🌸', '🦋', '🐛', '🌿', '🌻', '🐦'][Math.floor(Math.random() * 6)]}
-          </motion.div>
-        ))}
-      </div>
+    <div className="h-screen bg-gradient-to-b from-slate-50 to-slate-100 flex flex-col items-center justify-center p-6 relative overflow-hidden">
 
       {/* Parent Settings Button */}
       <motion.div
-        className="absolute top-4 right-4"
+        className="absolute top-4 right-4 z-20"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ delay: 1 }}
       >
         <Button
-          variant="ghost"
           size="sm"
           onClick={onOpenParentDashboard}
-          className="bg-white/20 hover:bg-white/30 backdrop-blur text-white"
+          className="bg-white/80 hover:bg-white text-gray-800 shadow-[0_4px_0_rgba(0,0,0,0.1),0_6px_12px_rgba(0,0,0,0.12)] hover:shadow-[0_6px_0_rgba(0,0,0,0.12),0_8px_16px_rgba(0,0,0,0.15)] active:shadow-[0_2px_0_rgba(0,0,0,0.08),0_3px_6px_rgba(0,0,0,0.06)] active:translate-y-0.5 rounded-[1.2rem]"
         >
           <Settings className="w-5 h-5" />
         </Button>
@@ -72,10 +45,10 @@ export function WelcomeScreen({
         transition={{ type: 'spring', duration: 0.8 }}
         className="text-center mb-8 relative z-10"
       >
-        <h1 className="text-5xl font-bold text-white mb-2 drop-shadow-lg">
+        <h1 className="text-6xl font-bold text-white mb-2 text-bubble">
           Pocket Science
         </h1>
-        <p className="text-xl text-white/90 drop-shadow">
+        <p className="text-xl text-white/95 drop-shadow-md font-semibold">
           Your Nature Adventure Starts Here!
         </p>
       </motion.div>
@@ -102,7 +75,7 @@ export function WelcomeScreen({
         <Button
           size="lg"
           onClick={onStartExploring}
-          className="w-full h-16 text-xl bg-gradient-to-r from-green-500 to-blue-500 hover:from-green-600 hover:to-blue-600 text-white shadow-2xl"
+          className="w-full text-lg bg-gradient-to-r from-green-500 to-blue-500 hover:from-green-600 hover:to-blue-600 text-white shadow-[0_10px_0_rgba(0,0,0,0.15),0_14px_28px_rgba(0,0,0,0.15)] hover:shadow-[0_14px_0_rgba(0,0,0,0.15),0_18px_32px_rgba(0,0,0,0.2)] active:shadow-[0_4px_0_rgba(0,0,0,0.1),0_6px_12px_rgba(0,0,0,0.08)] active:translate-y-1 rounded-[1.5rem]"
         >
           <Camera className="w-8 h-8 mr-3" />
           Start Exploring!
@@ -111,13 +84,12 @@ export function WelcomeScreen({
         <Button
           size="lg"
           onClick={onViewBoard}
-          variant="outline"
-          className="w-full h-16 text-xl bg-white/95 hover:bg-white shadow-xl"
+          className="w-full text-lg bg-white/95 hover:bg-white text-gray-800 shadow-[0_10px_0_rgba(0,0,0,0.1),0_14px_28px_rgba(0,0,0,0.12)] hover:shadow-[0_14px_0_rgba(0,0,0,0.12),0_18px_32px_rgba(0,0,0,0.15)] active:shadow-[0_4px_0_rgba(0,0,0,0.08),0_6px_12px_rgba(0,0,0,0.06)] active:translate-y-1 rounded-[1.5rem]"
         >
           <Sparkles className="w-8 h-8 mr-3 text-purple-500" />
           My Museum
           {discoveryCount > 0 && (
-            <span className="ml-2 bg-purple-500 text-white px-3 py-1 rounded-full text-sm">
+            <span className="ml-2 bg-purple-500 text-white px-4 py-1 rounded-full text-sm font-bold">
               {discoveryCount}
             </span>
           )}
@@ -128,7 +100,7 @@ export function WelcomeScreen({
             initial={{ scale: 0 }}
             animate={{ scale: 1 }}
             transition={{ delay: 0.8, type: 'spring' }}
-            className="bg-white/95 rounded-2xl p-4 shadow-xl flex items-center justify-center gap-3"
+            className="bg-white/95 rounded-[1.5rem] p-4 shadow-[0_6px_0_rgba(0,0,0,0.08),0_10px_20px_rgba(0,0,0,0.1)] flex items-center justify-center gap-3"
           >
             <Trophy className="w-8 h-8 text-yellow-500" />
             <div>

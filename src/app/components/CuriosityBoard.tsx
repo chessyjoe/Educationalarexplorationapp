@@ -54,9 +54,9 @@ export function CuriosityBoard({ profile, onBack, onCardClick }: CuriosityBoardP
   const inProgressBadges = profile.badges.filter(b => !b.unlocked);
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-purple-400 to-pink-300 flex flex-col">
+    <div className="h-screen bg-gradient-to-b from-purple-300 via-pink-300 to-orange-200 flex flex-col overflow-hidden">
       {/* Header */}
-      <div className="bg-white/95 backdrop-blur shadow-lg p-4">
+      <div className="flex-shrink-0 bg-white/95 backdrop-blur shadow-[0_4px_12px_rgba(0,0,0,0.1)] p-4">
         <div className="flex items-center justify-between mb-4">
           <Button variant="ghost" size="sm" onClick={onBack}>
             <ArrowLeft className="w-5 h-5 mr-2" />
@@ -83,27 +83,30 @@ export function CuriosityBoard({ profile, onBack, onCardClick }: CuriosityBoardP
           <span>by {profile.name}</span>
         </div>
 
-        {/* Sort tabs */}
-        <Tabs value={sortMode} onValueChange={(value) => setSortMode(value as SortMode)}>
-          <TabsList className="w-full grid grid-cols-4">
-            <TabsTrigger value="date" className="text-xs">
-              <Calendar className="w-4 h-4 mr-1" />
-              Date
-            </TabsTrigger>
-            <TabsTrigger value="type" className="text-xs">
-              <Grid3x3 className="w-4 h-4 mr-1" />
-              Type
-            </TabsTrigger>
-            <TabsTrigger value="color" className="text-xs">
-              <Palette className="w-4 h-4 mr-1" />
-              Color
-            </TabsTrigger>
-            <TabsTrigger value="habitat" className="text-xs">
-              <MapPin className="w-4 h-4 mr-1" />
-              Habitat
-            </TabsTrigger>
-          </TabsList>
-        </Tabs>
+        {/* Sort tabs with visual icons */}
+        <div className="grid grid-cols-4 gap-2">
+          {[
+            { value: 'date' as SortMode, icon: Calendar, label: '📅', tooltip: 'Date' },
+            { value: 'type' as SortMode, icon: Grid3x3, label: '🏷️', tooltip: 'Type' },
+            { value: 'color' as SortMode, icon: Palette, label: '🎨', tooltip: 'Color' },
+            { value: 'habitat' as SortMode, icon: MapPin, label: '🏞️', tooltip: 'Habitat' }
+          ].map(({ value, icon: Icon, label, tooltip }) => (
+            <motion.button
+              key={value}
+              onClick={() => setSortMode(value)}
+              className={`flex flex-col items-center justify-center py-3 px-2 rounded-[1.2rem] font-bold text-2xl transition-all ${
+                sortMode === value
+                  ? 'bg-white/95 shadow-[0_6px_0_rgba(0,0,0,0.1),0_10px_16px_rgba(0,0,0,0.12)]'
+                  : 'bg-white/50 hover:bg-white/70'
+              }`}
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95, y: 2 }}
+            >
+              <span className="text-2xl mb-1">{label}</span>
+              <span className="text-xs font-semibold text-gray-700">{tooltip}</span>
+            </motion.button>
+          ))}
+        </div>
       </div>
 
       {/* Badges Modal */}
@@ -117,7 +120,7 @@ export function CuriosityBoard({ profile, onBack, onCardClick }: CuriosityBoardP
           <motion.div
             initial={{ scale: 0.9, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
-            className="bg-white rounded-3xl p-6 max-w-md w-full max-h-[80vh] overflow-y-auto"
+            className="bg-white rounded-[2rem] p-6 max-w-md w-full max-h-[80vh] overflow-y-auto shadow-[0_20px_0_rgba(0,0,0,0.1),0_25px_50px_rgba(0,0,0,0.15)]"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-center justify-between mb-6">
@@ -130,7 +133,7 @@ export function CuriosityBoard({ profile, onBack, onCardClick }: CuriosityBoardP
                 <h3 className="text-lg font-semibold mb-3 text-green-600">Unlocked! 🎉</h3>
                 <div className="space-y-3">
                   {unlockedBadges.map((badge) => (
-                    <div key={badge.id} className="bg-gradient-to-r from-yellow-100 to-yellow-50 border-2 border-yellow-300 rounded-2xl p-4">
+                    <div key={badge.id} className="bg-gradient-to-r from-yellow-100 to-yellow-50 border-2 border-yellow-300 rounded-[1.5rem] p-4">
                       <div className="flex items-start gap-3">
                         <div className="w-12 h-12 bg-yellow-400 rounded-full flex items-center justify-center text-2xl">
                           {badge.icon === 'bug' && '🐛'}
@@ -156,7 +159,7 @@ export function CuriosityBoard({ profile, onBack, onCardClick }: CuriosityBoardP
                 <h3 className="text-lg font-semibold mb-3 text-gray-600">In Progress</h3>
                 <div className="space-y-3">
                   {inProgressBadges.map((badge) => (
-                    <div key={badge.id} className="bg-gray-100 border-2 border-gray-200 rounded-2xl p-4">
+                    <div key={badge.id} className="bg-gray-100 border-2 border-gray-200 rounded-[1.5rem] p-4">
                       <div className="flex items-start gap-3">
                         <div className="w-12 h-12 bg-gray-300 rounded-full flex items-center justify-center text-2xl opacity-50">
                           {badge.icon === 'bug' && '🐛'}
@@ -201,6 +204,7 @@ export function CuriosityBoard({ profile, onBack, onCardClick }: CuriosityBoardP
           </div>
         ) : (
           <div className="grid grid-cols-2 gap-4 pb-4">
+            {/* Discovered cards */}
             {sortedDiscoveries.map((discovery, index) => (
               <motion.div
                 key={discovery.id}
@@ -210,7 +214,7 @@ export function CuriosityBoard({ profile, onBack, onCardClick }: CuriosityBoardP
                 onClick={() => onCardClick(discovery)}
                 className="cursor-pointer"
               >
-                <div className="bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-2xl transition-shadow">
+                <div className="bg-white rounded-[1.5rem] shadow-[0_4px_0_rgba(0,0,0,0.08),0_8px_16px_rgba(0,0,0,0.1)] overflow-hidden hover:shadow-[0_8px_0_rgba(0,0,0,0.1),0_12px_24px_rgba(0,0,0,0.15)] transition-shadow">
                   <div className="relative h-40 bg-gray-100">
                     <ImageWithFallback
                       src={`https://source.unsplash.com/300x300/?${discovery.imageUrl}`}
@@ -241,6 +245,28 @@ export function CuriosityBoard({ profile, onBack, onCardClick }: CuriosityBoardP
                   </div>
                 </div>
               </motion.div>
+            ))}
+
+            {/* Locked/Undiscovered cards for sticker book effect */}
+            {[1, 2, 3, 4].map((index) => (
+              sortedDiscoveries.length + index <= 12 && (
+                <motion.div
+                  key={`locked-${index}`}
+                  initial={{ opacity: 0, scale: 0.8 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ delay: (sortedDiscoveries.length + index) * 0.05 }}
+                  className="cursor-default"
+                >
+                  <div className="bg-gradient-to-br from-gray-400 to-gray-600 rounded-[1.5rem] shadow-[0_4px_0_rgba(0,0,0,0.15),0_8px_16px_rgba(0,0,0,0.2)] overflow-hidden h-56 flex items-center justify-center group relative">
+                    <div className="absolute inset-0 bg-black/20 group-hover:bg-black/30 transition-all" />
+                    <div className="relative z-10 flex flex-col items-center justify-center text-center">
+                      <div className="text-6xl mb-3 opacity-60">❓</div>
+                      <p className="text-white/80 font-bold text-sm px-3">Discovery {sortedDiscoveries.length + index}</p>
+                      <p className="text-white/60 text-xs mt-2 px-3">Keep exploring to unlock!</p>
+                    </div>
+                  </div>
+                </motion.div>
+              )
             ))}
           </div>
         )}

@@ -26,12 +26,15 @@ export function PipMascot({ message, emotion = 'happy', size = 'medium' }: PipMa
         className={`${sizeClasses[size]} rounded-full bg-gradient-to-br ${emotionColors[emotion]} flex items-center justify-center shadow-lg`}
         animate={{
           scale: [1, 1.1, 1],
-          rotate: emotion === 'excited' ? [0, -5, 5, -5, 0] : 0
+          rotate: emotion === 'excited' ? [0, -5, 5, -5, 0] : 0,
+          scaleX: [1, 0.92, 1.08, 0.95, 1],
+          scaleY: [1, 1.08, 0.92, 1.05, 1]
         }}
         transition={{
           duration: emotion === 'excited' ? 0.5 : 2,
           repeat: Infinity,
-          repeatType: 'reverse'
+          repeatType: 'reverse',
+          ease: emotion === 'excited' ? 'easeInOut' : 'easeInOut'
         }}
       >
         {/* Pip's face */}
@@ -61,12 +64,17 @@ export function PipMascot({ message, emotion = 'happy', size = 'medium' }: PipMa
       </motion.div>
 
       {/* Speech bubble */}
-      <div className="relative bg-white rounded-2xl px-4 py-3 shadow-lg max-w-xs">
+      <motion.div
+        className="relative bg-white rounded-[1.5rem] px-4 py-3 shadow-[0_4px_12px_rgba(0,0,0,0.1)] max-w-xs"
+        initial={{ scale: 0.8, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        transition={{ type: 'spring', damping: 10, stiffness: 200 }}
+      >
         <div className="absolute -top-2 left-1/2 -translate-x-1/2 w-4 h-4 bg-white rotate-45" />
-        <p className="relative z-10 text-center text-sm leading-relaxed">
+        <p className="relative z-10 text-center text-sm leading-relaxed font-medium text-gray-800">
           {message}
         </p>
-      </div>
+      </motion.div>
     </div>
   );
 }

@@ -140,7 +140,7 @@ export function OnboardingScreen({ onComplete }: OnboardingScreenProps) {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.4 }}
-                className="bg-white rounded-3xl p-6 w-full shadow-2xl space-y-4"
+                className="bg-white rounded-[2rem] p-6 w-full shadow-[0_10px_0_rgba(0,0,0,0.12),0_15px_30px_rgba(0,0,0,0.15)] space-y-4"
               >
                 <div>
                   <Label htmlFor="name" className="text-gray-700">

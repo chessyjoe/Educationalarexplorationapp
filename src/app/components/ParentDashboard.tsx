@@ -42,7 +42,7 @@ export function ParentDashboard({ profile, onBack, onUpdateProfile, onClearData 
         <motion.div
           initial={{ scale: 0.9, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
-          className="bg-white rounded-3xl p-8 max-w-md w-full shadow-2xl"
+          className="bg-white rounded-[2rem] p-8 max-w-md w-full shadow-[0_20px_0_rgba(0,0,0,0.12),0_25px_50px_rgba(0,0,0,0.15)]"
         >
           <div className="flex items-center justify-center mb-6">
             <div className="w-20 h-20 bg-indigo-100 rounded-full flex items-center justify-center">
@@ -99,8 +99,8 @@ export function ParentDashboard({ profile, onBack, onUpdateProfile, onClearData 
   }, {} as Record<string, number>);
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-indigo-500 to-purple-600 flex flex-col">
-      <div className="bg-white/95 backdrop-blur shadow-lg p-4">
+    <div className="h-screen bg-gradient-to-b from-indigo-500 to-purple-600 flex flex-col overflow-hidden">
+      <div className="flex-shrink-0 bg-white/95 backdrop-blur shadow-[0_4px_12px_rgba(0,0,0,0.1)] p-4">
         <div className="flex items-center justify-between mb-2">
           <Button variant="ghost" size="sm" onClick={onBack}>
             <ArrowLeft className="w-5 h-5 mr-2" />

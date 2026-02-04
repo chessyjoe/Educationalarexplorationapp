@@ -6,12 +6,15 @@ import { ResultScreen } from './components/ResultScreen';
 import { CuriosityBoard } from './components/CuriosityBoard';
 import { ParentDashboard } from './components/ParentDashboard';
 import { DiscoveryDetail } from './components/DiscoveryDetail';
+import { ChatScreen } from './components/ChatScreen';
+import { VoiceMode } from './components/VoiceMode';
+import { LiveDiscovery } from './components/LiveDiscovery';
 import { loadUserProfile, saveUserProfile, addDiscovery, getDefaultProfile } from './utils/storage';
 import { recognizeImage } from './services/recognitionService';
 import type { UserProfile, Discovery } from './types';
 import { toast, Toaster } from 'sonner';
 
-type Screen = 'onboarding' | 'welcome' | 'camera' | 'result' | 'board' | 'parent';
+type Screen = 'onboarding' | 'welcome' | 'camera' | 'result' | 'board' | 'parent' | 'chat' | 'voice' | 'live';
 
 export default function App() {
   const [currentScreen, setCurrentScreen] = useState<Screen>(() => {
@@ -39,6 +42,26 @@ export default function App() {
 
   const handleOpenParentDashboard = () => {
     setCurrentScreen('parent');
+  };
+
+  const handleOpenChat = () => {
+    setCurrentScreen('chat');
+  };
+
+  const handleOpenVoiceMode = () => {
+    setCurrentScreen('voice');
+  };
+
+  const handleOpenLiveDiscovery = () => {
+    setCurrentScreen('live');
+  };
+
+  const handleLiveDiscovery = (count: number) => {
+    if (count > 0) {
+      toast.success(`Found discovery! Total: ${count}`, {
+        description: 'Keep scanning!'
+      });
+    }
   };
 
   const handleCapture = async () => {
@@ -161,6 +184,9 @@ export default function App() {
           onCapture={handleCapture}
           isProcessing={isProcessing}
           onBack={handleBackToWelcome}
+          onOpenChat={handleOpenChat}
+          onOpenVoiceMode={handleOpenVoiceMode}
+          onOpenLiveDiscovery={handleOpenLiveDiscovery}
         />
       )}
 
@@ -186,6 +212,29 @@ export default function App() {
           onBack={handleBackToWelcome}
           onUpdateProfile={handleUpdateProfile}
           onClearData={handleClearData}
+        />
+      )}
+
+      {currentScreen === 'chat' && (
+        <ChatScreen
+          profile={profile}
+          onBack={handleBackToWelcome}
+          discoveries={profile.discoveries}
+        />
+      )}
+
+      {currentScreen === 'voice' && (
+        <VoiceMode
+          profile={profile}
+          onBack={handleBackToWelcome}
+        />
+      )}
+
+      {currentScreen === 'live' && (
+        <LiveDiscovery
+          profile={profile}
+          onBack={handleBackToWelcome}
+          onDiscovery={handleLiveDiscovery}
         />
       )}
 
