@@ -6,12 +6,15 @@ import { ResultScreen } from './components/ResultScreen';
 import { CuriosityBoard } from './components/CuriosityBoard';
 import { ParentDashboard } from './components/ParentDashboard';
 import { DiscoveryDetail } from './components/DiscoveryDetail';
+import { ChatScreen } from './components/ChatScreen';
+import { VoiceMode } from './components/VoiceMode';
+import { LiveDiscovery } from './components/LiveDiscovery';
 import { loadUserProfile, saveUserProfile, addDiscovery, getDefaultProfile } from './utils/storage';
 import { recognizeImage } from './services/recognitionService';
 import type { UserProfile, Discovery } from './types';
 import { toast, Toaster } from 'sonner';
 
-type Screen = 'onboarding' | 'welcome' | 'camera' | 'result' | 'board' | 'parent';
+type Screen = 'onboarding' | 'welcome' | 'camera' | 'result' | 'board' | 'parent' | 'chat' | 'voice' | 'live';
 
 export default function App() {
   const [currentScreen, setCurrentScreen] = useState<Screen>(() => {
