@@ -120,7 +120,7 @@ export function CuriosityBoard({ profile, onBack, onCardClick }: CuriosityBoardP
           <motion.div
             initial={{ scale: 0.9, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
-            className="bg-white rounded-3xl p-6 max-w-md w-full max-h-[80vh] overflow-y-auto"
+            className="bg-white rounded-[2rem] p-6 max-w-md w-full max-h-[80vh] overflow-y-auto shadow-[0_20px_0_rgba(0,0,0,0.1),0_25px_50px_rgba(0,0,0,0.15)]"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-center justify-between mb-6">
