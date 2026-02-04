@@ -26,12 +26,15 @@ export function PipMascot({ message, emotion = 'happy', size = 'medium' }: PipMa
         className={`${sizeClasses[size]} rounded-full bg-gradient-to-br ${emotionColors[emotion]} flex items-center justify-center shadow-lg`}
         animate={{
           scale: [1, 1.1, 1],
-          rotate: emotion === 'excited' ? [0, -5, 5, -5, 0] : 0
+          rotate: emotion === 'excited' ? [0, -5, 5, -5, 0] : 0,
+          scaleX: [1, 0.92, 1.08, 0.95, 1],
+          scaleY: [1, 1.08, 0.92, 1.05, 1]
         }}
         transition={{
           duration: emotion === 'excited' ? 0.5 : 2,
           repeat: Infinity,
-          repeatType: 'reverse'
+          repeatType: 'reverse',
+          ease: emotion === 'excited' ? 'easeInOut' : 'easeInOut'
         }}
       >
         {/* Pip's face */}
