@@ -83,27 +83,30 @@ export function CuriosityBoard({ profile, onBack, onCardClick }: CuriosityBoardP
           <span>by {profile.name}</span>
         </div>
 
-        {/* Sort tabs */}
-        <Tabs value={sortMode} onValueChange={(value) => setSortMode(value as SortMode)}>
-          <TabsList className="w-full grid grid-cols-4">
-            <TabsTrigger value="date" className="text-xs">
-              <Calendar className="w-4 h-4 mr-1" />
-              Date
-            </TabsTrigger>
-            <TabsTrigger value="type" className="text-xs">
-              <Grid3x3 className="w-4 h-4 mr-1" />
-              Type
-            </TabsTrigger>
-            <TabsTrigger value="color" className="text-xs">
-              <Palette className="w-4 h-4 mr-1" />
-              Color
-            </TabsTrigger>
-            <TabsTrigger value="habitat" className="text-xs">
-              <MapPin className="w-4 h-4 mr-1" />
-              Habitat
-            </TabsTrigger>
-          </TabsList>
-        </Tabs>
+        {/* Sort tabs with visual icons */}
+        <div className="grid grid-cols-4 gap-2">
+          {[
+            { value: 'date' as SortMode, icon: Calendar, label: '📅', tooltip: 'Date' },
+            { value: 'type' as SortMode, icon: Grid3x3, label: '🏷️', tooltip: 'Type' },
+            { value: 'color' as SortMode, icon: Palette, label: '🎨', tooltip: 'Color' },
+            { value: 'habitat' as SortMode, icon: MapPin, label: '🏞️', tooltip: 'Habitat' }
+          ].map(({ value, icon: Icon, label, tooltip }) => (
+            <motion.button
+              key={value}
+              onClick={() => setSortMode(value)}
+              className={`flex flex-col items-center justify-center py-3 px-2 rounded-[1.2rem] font-bold text-2xl transition-all ${
+                sortMode === value
+                  ? 'bg-white/95 shadow-[0_6px_0_rgba(0,0,0,0.1),0_10px_16px_rgba(0,0,0,0.12)]'
+                  : 'bg-white/50 hover:bg-white/70'
+              }`}
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95, y: 2 }}
+            >
+              <span className="text-2xl mb-1">{label}</span>
+              <span className="text-xs font-semibold text-gray-700">{tooltip}</span>
+            </motion.button>
+          ))}
+        </div>
       </div>
 
       {/* Badges Modal */}
