@@ -187,7 +187,7 @@ export function CameraInterface({
       {/* Helper hint */}
       {!isProcessing && (
         <motion.div
-          className="absolute bottom-32 left-1/2 -translate-x-1/2 bg-black/60 text-white px-4 py-2 rounded-full text-xs"
+          className="absolute bottom-48 left-1/2 -translate-x-1/2 bg-black/50 text-white px-4 py-2 rounded-[1.5rem] text-xs font-medium drop-shadow-lg"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 1 }}
