@@ -44,6 +44,26 @@ export default function App() {
     setCurrentScreen('parent');
   };
 
+  const handleOpenChat = () => {
+    setCurrentScreen('chat');
+  };
+
+  const handleOpenVoiceMode = () => {
+    setCurrentScreen('voice');
+  };
+
+  const handleOpenLiveDiscovery = () => {
+    setCurrentScreen('live');
+  };
+
+  const handleLiveDiscovery = (count: number) => {
+    if (count > 0) {
+      toast.success(`Found discovery! Total: ${count}`, {
+        description: 'Keep scanning!'
+      });
+    }
+  };
+
   const handleCapture = async () => {
     setIsProcessing(true);
     
