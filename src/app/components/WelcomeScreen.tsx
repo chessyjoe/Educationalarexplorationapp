@@ -8,9 +8,6 @@ interface WelcomeScreenProps {
   onStartExploring: () => void;
   onViewBoard: () => void;
   onOpenParentDashboard: () => void;
-  onOpenChat: () => void;
-  onOpenVoiceMode: () => void;
-  onOpenLiveDiscovery: () => void;
   discoveryCount: number;
   badgeCount: number;
 }
@@ -20,9 +17,6 @@ export function WelcomeScreen({
   onStartExploring,
   onViewBoard,
   onOpenParentDashboard,
-  onOpenChat,
-  onOpenVoiceMode,
-  onOpenLiveDiscovery,
   discoveryCount,
   badgeCount
 }: WelcomeScreenProps) {
