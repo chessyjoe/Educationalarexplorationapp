@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Camera, Focus, Loader2, Home, MessageCircle, Mic, Zap } from 'lucide-react';
+import { Camera, Focus, Loader2, Settings, Zap, RotateCcw, Image, Film, Leaf } from 'lucide-react';
 import { motion } from 'motion/react';
 import { PipMascot } from './PipMascot';
 import { Button } from './ui/button';
@@ -24,10 +24,12 @@ export function CameraInterface({
   onOpenLiveDiscovery
 }: CameraInterfaceProps) {
   const [currentMode, setCurrentMode] = useState<CameraMode>('camera');
-  const [pipMessage, setPipMessage] = useState("Point me at something cool!");
-  const [showReticle, setShowReticle] = useState(true);
+  const [pipMessage, setPipMessage] = useState("That looks like a Fern! Keep it in the circle.");
+  const [flashEnabled, setFlashEnabled] = useState(false);
+  const [facingMode, setFacingMode] = useState<'user' | 'environment'>('environment');
 
   const messages = [
+    "That looks like a Fern! Keep it in the circle.",
     "What did you find?",
     "Get a bit closer!",
     "Hold steady...",
@@ -35,11 +37,6 @@ export function CameraInterface({
     "Ooh, what's that?",
     "I'm ready when you are!"
   ];
-
-  const handleFocus = () => {
-    const randomMessage = messages[Math.floor(Math.random() * messages.length)];
-    setPipMessage(randomMessage);
-  };
 
   const handleModeChange = (mode: CameraMode) => {
     if (mode === 'chat' && onOpenChat) {
@@ -53,89 +50,120 @@ export function CameraInterface({
     }
   };
 
+  const handleFlashToggle = () => {
+    setFlashEnabled(!flashEnabled);
+  };
+
+  const handleCameraFlip = () => {
+    setFacingMode(facingMode === 'user' ? 'environment' : 'user');
+  };
+
+  const handleGallery = () => {
+    // Open gallery
+    console.log('Open gallery');
+  };
+
+  const handleRecent = () => {
+    // Open recent captures
+    console.log('Open recent captures');
+  };
+
+  const handlePhotoMode = () => {
+    // Switch to photo mode
+    console.log('Photo mode');
+  };
+
+  const handleDiscoveryMode = () => {
+    if (onOpenLiveDiscovery) {
+      onOpenLiveDiscovery();
+    }
+  };
+
   return (
-    <div className="relative w-full h-full bg-gradient-to-b from-sky-200 to-green-100 overflow-hidden">
-      {/* Mode Switcher Tabs - Positioned below Pip mascot to avoid overlap */}
-      <div className="absolute top-24 left-0 right-0 z-20 flex justify-center gap-2 px-4 flex-wrap">
-        <motion.div whileTap={{ scale: 0.95 }}>
-          <Button
-            variant={currentMode === 'camera' ? 'default' : 'outline'}
-            size="sm"
-            onClick={() => handleModeChange('camera')}
-            className="flex items-center gap-2 bg-white/95 hover:bg-white text-gray-800 border-0"
-          >
-            <Camera className="w-4 h-4" />
-            <span>Camera</span>
-          </Button>
-        </motion.div>
-
-        <motion.div whileTap={{ scale: 0.95 }}>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => handleModeChange('chat')}
-            className="flex items-center gap-2 bg-white/80 hover:bg-white/95 text-gray-800 border-0"
-          >
-            <MessageCircle className="w-4 h-4" />
-            <span>Chat</span>
-          </Button>
-        </motion.div>
-
-        <motion.div whileTap={{ scale: 0.95 }}>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => handleModeChange('voice')}
-            className="flex items-center gap-2 bg-white/80 hover:bg-white/95 text-gray-800 border-0"
-          >
-            <Mic className="w-4 h-4" />
-            <span>Voice</span>
-          </Button>
-        </motion.div>
-
-        <motion.div whileTap={{ scale: 0.95 }}>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => handleModeChange('live')}
-            className="flex items-center gap-2 bg-white/80 hover:bg-white/95 text-gray-800 border-0"
-          >
-            <Zap className="w-4 h-4" />
-            <span>Live</span>
-          </Button>
-        </motion.div>
-      </div>
+    <div className="relative w-full h-full bg-gradient-to-b from-[#8B6F5E] via-[#A88B73] to-[#8B6F5E] overflow-hidden">
       {/* Simulated camera view */}
-      <div className="absolute inset-0 flex items-center justify-center">
-        <div className="text-center text-gray-600 opacity-50">
+      <div className="absolute inset-0 flex items-center justify-center opacity-20">
+        <div className="text-center text-white">
           <Camera className="w-24 h-24 mx-auto mb-2" />
           <p className="text-sm">Camera Preview</p>
-          <p className="text-xs mt-1">(Simulated for demo)</p>
         </div>
       </div>
 
-      {/* Target Reticle */}
-      {showReticle && !isProcessing && (
+      {/* Top controls */}
+      <div className="absolute top-6 left-0 right-0 z-20 px-6">
+        <div className="flex items-center justify-between">
+          {/* Flash button */}
+          <motion.button
+            whileTap={{ scale: 0.95 }}
+            onClick={handleFlashToggle}
+            className={`w-14 h-14 rounded-full border-2 flex items-center justify-center transition-colors ${
+              flashEnabled 
+                ? 'bg-white border-white text-[#8B6F5E]' 
+                : 'bg-transparent border-white/60 text-white'
+            }`}
+          >
+            <Zap className="w-6 h-6" fill={flashEnabled ? 'currentColor' : 'none'} />
+          </motion.button>
+
+          {/* Lens Mode button */}
+          <motion.button
+            whileTap={{ scale: 0.95 }}
+            className="px-8 py-3 rounded-full bg-gradient-to-r from-[#FF9B7A] to-[#FFA88A] text-white font-bold text-sm tracking-wider shadow-lg"
+          >
+            LENS MODE
+          </motion.button>
+
+          {/* Settings button */}
+          <motion.button
+            whileTap={{ scale: 0.95 }}
+            onClick={onBack}
+            className="w-14 h-14 rounded-full bg-transparent border-2 border-white/60 text-white flex items-center justify-center"
+          >
+            <Settings className="w-6 h-6" />
+          </motion.button>
+        </div>
+
+        {/* Camera flip button */}
+        <motion.button
+          whileTap={{ scale: 0.95 }}
+          onClick={handleCameraFlip}
+          className="w-14 h-14 rounded-full bg-transparent border-2 border-white/60 text-white flex items-center justify-center mt-4"
+        >
+          <RotateCcw className="w-6 h-6" />
+        </motion.button>
+      </div>
+
+      {/* Center viewfinder */}
+      {!isProcessing && (
         <motion.div
           className="absolute inset-0 flex items-center justify-center pointer-events-none"
-          initial={{ opacity: 0, scale: 1.2 }}
+          initial={{ opacity: 0, scale: 1.1 }}
           animate={{ opacity: 1, scale: 1 }}
         >
-          <div className="relative w-48 h-48">
-            {/* Corner brackets */}
-            <div className="absolute top-0 left-0 w-12 h-12 border-t-4 border-l-4 border-white rounded-tl-lg" />
-            <div className="absolute top-0 right-0 w-12 h-12 border-t-4 border-r-4 border-white rounded-tr-lg" />
-            <div className="absolute bottom-0 left-0 w-12 h-12 border-b-4 border-l-4 border-white rounded-bl-lg" />
-            <div className="absolute bottom-0 right-0 w-12 h-12 border-b-4 border-r-4 border-white rounded-br-lg" />
+          <div className="relative w-80 h-80">
+            {/* Outer dashed circle */}
+            <svg className="absolute inset-0 w-full h-full" viewBox="0 0 320 320">
+              <circle
+                cx="160"
+                cy="160"
+                r="155"
+                fill="none"
+                stroke="white"
+                strokeWidth="3"
+                strokeDasharray="8 8"
+                opacity="0.6"
+              />
+            </svg>
             
-            {/* Center focus dot */}
+            {/* Inner solid circle */}
+            <div className="absolute inset-4 rounded-full border-4 border-white/80" />
+            
+            {/* Center dot */}
             <motion.div
-              className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2"
-              animate={{ scale: [1, 1.2, 1] }}
-              transition={{ duration: 1.5, repeat: Infinity }}
-            >
-              <Focus className="w-8 h-8 text-white" />
-            </motion.div>
+              className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-4 h-4 rounded-full bg-[#FF9B7A]"
+              animate={{ scale: [1, 1.3, 1] }}
+              transition={{ duration: 2, repeat: Infinity }}
+            />
           </div>
         </motion.div>
       )}
@@ -161,53 +189,100 @@ export function CameraInterface({
         </motion.div>
       )}
 
-      {/* Pip at top */}
+      {/* Pip mascot with speech bubble - bottom left */}
       {!isProcessing && (
-        <div className="absolute top-4 left-1/2 -translate-x-1/2 z-10">
-          <PipMascot message={pipMessage} emotion="happy" size="small" />
-        </div>
-      )}
-
-      {/* Capture button */}
-      {!isProcessing && (
-        <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-10 flex flex-col items-center gap-3">
-          <motion.div whileTap={{ scale: 0.95 }}>
-            <Button
-              size="lg"
-              onClick={onCapture}
-              className="w-24 h-24 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white shadow-[0_8px_0_rgba(0,0,0,0.2),0_12px_24px_rgba(0,0,0,0.15)] hover:shadow-[0_12px_0_rgba(0,0,0,0.2),0_16px_32px_rgba(0,0,0,0.2)] active:shadow-[0_4px_0_rgba(0,0,0,0.15),0_6px_12px_rgba(0,0,0,0.1)] active:translate-y-1"
-            >
-              <Camera className="w-8 h-8" />
-            </Button>
-          </motion.div>
-          <p className="text-white text-sm font-semibold drop-shadow-lg">Tap to Snap!</p>
-        </div>
-      )}
-
-      {/* Helper hint */}
-      {!isProcessing && (
-        <motion.div
-          className="absolute bottom-48 left-1/2 -translate-x-1/2 bg-black/50 text-white px-4 py-2 rounded-[1.5rem] text-xs font-medium drop-shadow-lg"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 1 }}
-        >
-          Point at plants or animals
-        </motion.div>
-      )}
-
-      {/* Back button */}
-      {onBack && (
-        <motion.div className="absolute top-4 left-4 z-10" whileTap={{ scale: 0.95 }}>
-          <Button
-            size="icon"
-            onClick={onBack}
-            variant="default"
-            className="bg-white hover:bg-gray-100 text-blue-600 shadow-[0_4px_0_rgba(0,0,0,0.12),0_8px_16px_rgba(0,0,0,0.1)] hover:shadow-[0_6px_0_rgba(0,0,0,0.12),0_10px_20px_rgba(0,0,0,0.15)] active:shadow-[0_2px_0_rgba(0,0,0,0.08),0_4px_8px_rgba(0,0,0,0.06)] active:translate-y-0.5"
+        <div className="absolute bottom-48 left-6 z-10 flex items-end gap-3">
+          {/* Pip avatar */}
+          <motion.div
+            className="w-16 h-16 rounded-full bg-gradient-to-br from-teal-400 to-cyan-500 border-4 border-white flex items-center justify-center shadow-lg"
+            whileTap={{ scale: 0.95 }}
           >
-            <Home className="w-4 h-4" />
-          </Button>
-        </motion.div>
+            <div className="text-2xl">😊</div>
+          </motion.div>
+
+          {/* Speech bubble */}
+          <motion.div
+            className="bg-white rounded-3xl rounded-bl-none px-5 py-3 shadow-lg max-w-[240px]"
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+          >
+            <p className="text-gray-900 font-semibold text-sm leading-tight">
+              {pipMessage}
+            </p>
+          </motion.div>
+        </div>
+      )}
+
+      {/* Bottom controls */}
+      {!isProcessing && (
+        <div className="absolute bottom-0 left-0 right-0 z-10 pb-8">
+          {/* Swipe for modes text */}
+          <div className="text-center mb-4">
+            <p className="text-white text-xs font-semibold tracking-wider opacity-80">
+              SWIPE FOR MODES
+            </p>
+          </div>
+
+          {/* Control buttons */}
+          <div className="flex items-center justify-center gap-8 px-6">
+            {/* Gallery */}
+            <motion.button
+              whileTap={{ scale: 0.95 }}
+              onClick={handleGallery}
+              className="w-14 h-14 rounded-full bg-black/40 border-2 border-white/30 text-white flex items-center justify-center"
+            >
+              <Image className="w-6 h-6" />
+            </motion.button>
+
+            {/* Recent captures */}
+            <motion.button
+              whileTap={{ scale: 0.95 }}
+              onClick={handleRecent}
+              className="w-14 h-14 rounded-full bg-black/40 border-2 border-white/30 text-white flex items-center justify-center"
+            >
+              <Film className="w-5 h-5" />
+            </motion.button>
+
+            {/* Main capture button */}
+            <motion.button
+              whileTap={{ scale: 0.95 }}
+              onClick={onCapture}
+              className="relative w-20 h-20 flex items-center justify-center"
+            >
+              {/* Outer ring */}
+              <div className="absolute inset-0 rounded-full border-4 border-white" />
+              {/* Middle ring */}
+              <div className="absolute inset-2 rounded-full bg-gradient-to-br from-[#FF9B7A] to-[#FFA88A] border-4 border-white" />
+              {/* Inner content */}
+              <div className="absolute inset-4 rounded-full border-2 border-white/40 flex items-center justify-center">
+                <Focus className="w-6 h-6 text-white" />
+              </div>
+            </motion.button>
+
+            {/* Photo mode */}
+            <motion.button
+              whileTap={{ scale: 0.95 }}
+              onClick={handlePhotoMode}
+              className="w-14 h-14 rounded-full bg-black/40 border-2 border-white/30 text-white flex items-center justify-center"
+            >
+              <Camera className="w-6 h-6" />
+            </motion.button>
+
+            {/* Discovery mode */}
+            <motion.button
+              whileTap={{ scale: 0.95 }}
+              onClick={handleDiscoveryMode}
+              className="w-14 h-14 rounded-full bg-black/40 border-2 border-white/30 text-white flex items-center justify-center"
+            >
+              <Leaf className="w-6 h-6" />
+            </motion.button>
+          </div>
+
+          {/* Home indicator bar */}
+          <div className="flex justify-center mt-6">
+            <div className="w-32 h-1 bg-white/40 rounded-full" />
+          </div>
+        </div>
       )}
     </div>
   );
