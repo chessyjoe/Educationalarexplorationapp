@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { Camera, Focus, Loader2, Settings, Zap, RotateCcw, X } from 'lucide-react';
+import { Camera, Focus, Loader2, Settings, Zap, RotateCcw, X, Leaf, Mic, MessageCircle } from 'lucide-react';
 import { motion } from 'motion/react';
 import { PipMascot } from './PipMascot';
 import { Button } from './ui/button';
@@ -10,12 +10,18 @@ interface CameraInterfaceProps {
   onCapture: (imageDataUrl: string) => void;
   isProcessing: boolean;
   onBack?: () => void;
+  onOpenChat?: () => void;
+  onOpenVoiceMode?: () => void;
+  onOpenLiveDiscovery?: () => void;
 }
 
 export function CameraInterface({
   onCapture,
   isProcessing,
-  onBack
+  onBack,
+  onOpenChat,
+  onOpenVoiceMode,
+  onOpenLiveDiscovery
 }: CameraInterfaceProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const [cameraStream, setCameraStream] = useState<MediaStream | null>(null);
@@ -125,6 +131,22 @@ export function CameraInterface({
     setPipMessage(facingMode === 'user' ? 'Back camera' : 'Front camera');
     setPipEmotion('excited');
     setTimeout(() => setPipEmotion('happy'), 1500);
+  };
+
+  const handleModeChange = (mode: 'chat' | 'voice' | 'live') => {
+    if (mode === 'chat' && onOpenChat) {
+      setPipMessage('Opening chat mode...');
+      setPipEmotion('excited');
+      onOpenChat();
+    } else if (mode === 'voice' && onOpenVoiceMode) {
+      setPipMessage('Time to talk!');
+      setPipEmotion('excited');
+      onOpenVoiceMode();
+    } else if (mode === 'live' && onOpenLiveDiscovery) {
+      setPipMessage('Let\'s find discoveries!');
+      setPipEmotion('excited');
+      onOpenLiveDiscovery();
+    }
   };
 
   if (permissionDenied) {
@@ -338,7 +360,7 @@ export function CameraInterface({
             whileTap={{ scale: 0.92 }}
             whileHover={{ scale: 1.05 }}
             onClick={handleCapture}
-            className="relative w-24 h-24 flex items-center justify-center flex-shrink-0 mb-8"
+            className="relative w-24 h-24 flex items-center justify-center flex-shrink-0 mb-6"
           >
             {/* Outer ring */}
             <div className="absolute inset-0 rounded-full border-4 border-white" />
@@ -349,6 +371,45 @@ export function CameraInterface({
               <Focus className="w-7 h-7 text-white" />
             </div>
           </motion.button>
+
+          {/* Mode selection buttons */}
+          <div className="flex flex-wrap justify-center gap-4 px-4 mb-6">
+            {/* Discovery mode (live discovery) */}
+            <motion.button
+              whileTap={{ scale: 0.95 }}
+              whileHover={{ scale: 1.05 }}
+              onClick={() => handleModeChange('live')}
+              className="w-14 h-14 rounded-full bg-black/40 border-2 border-white/30 text-white flex items-center justify-center flex-col transition-all hover:border-white/50 active:bg-black/60"
+              title="Live Discovery Mode"
+            >
+              <Leaf className="w-5 h-5 mb-1" />
+              <span className="text-xs font-semibold hidden sm:block">Discovery</span>
+            </motion.button>
+
+            {/* Voice mode */}
+            <motion.button
+              whileTap={{ scale: 0.95 }}
+              whileHover={{ scale: 1.05 }}
+              onClick={() => handleModeChange('voice')}
+              className="w-14 h-14 rounded-full bg-black/40 border-2 border-white/30 text-white flex items-center justify-center flex-col transition-all hover:border-white/50 active:bg-black/60"
+              title="Voice Mode"
+            >
+              <Mic className="w-5 h-5 mb-1" />
+              <span className="text-xs font-semibold hidden sm:block">Voice</span>
+            </motion.button>
+
+            {/* Chat mode */}
+            <motion.button
+              whileTap={{ scale: 0.95 }}
+              whileHover={{ scale: 1.05 }}
+              onClick={() => handleModeChange('chat')}
+              className="w-14 h-14 rounded-full bg-black/40 border-2 border-white/30 text-white flex items-center justify-center flex-col transition-all hover:border-white/50 active:bg-black/60"
+              title="Chat Mode"
+            >
+              <MessageCircle className="w-5 h-5 mb-1" />
+              <span className="text-xs font-semibold hidden sm:block">Chat</span>
+            </motion.button>
+          </div>
 
           {/* Camera flip button */}
           <motion.button
