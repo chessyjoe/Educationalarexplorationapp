@@ -3,7 +3,6 @@ import { AlertTriangle, Sparkles, Volume2 } from 'lucide-react';
 import { Button } from './ui/button';
 import { PipMascot } from './PipMascot';
 import type { Discovery } from '@/app/types';
-import { ImageWithFallback } from '@/app/components/figma/ImageWithFallback';
 
 interface ResultScreenProps {
   discovery: Discovery;
@@ -60,13 +59,19 @@ export function ResultScreen({ discovery, onAddToBoard, onTryAgain }: ResultScre
               <p className="text-base text-gray-500 italic mb-6">{discovery.scientificName}</p>
             )}
 
-            {/* Dynamic image area */}
+            {/* Captured image area */}
             <div className="mb-6 rounded-[1.5rem] overflow-hidden bg-gray-100">
-              <ImageWithFallback
-                src={`https://source.unsplash.com/400x300/?${discovery.imageUrl}`}
-                alt={discovery.name}
-                className="w-full max-h-96 object-cover"
-              />
+              {discovery.capturedImage ? (
+                <img
+                  src={discovery.capturedImage}
+                  alt={discovery.name}
+                  className="w-full max-h-96 object-cover"
+                />
+              ) : (
+                <div className="w-full h-64 flex items-center justify-center text-gray-400">
+                  <p>Camera image not available</p>
+                </div>
+              )}
             </div>
 
             {/* Warning/Story section */}

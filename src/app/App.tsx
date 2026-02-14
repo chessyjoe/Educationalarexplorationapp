@@ -10,6 +10,7 @@ import { ChatScreen } from './components/ChatScreen';
 import { VoiceMode } from './components/VoiceMode';
 import { LiveDiscovery } from './components/LiveDiscovery';
 import { LiveDiscoveryResults } from './components/LiveDiscoveryResults';
+import { APISetupGuide } from './components/APISetupGuide';
 import { PWAInstallPrompt } from './components/PWAInstallPrompt';
 import { loadUserProfile, saveUserProfile, addDiscovery, getDefaultProfile } from './utils/storage';
 import { recognizeImage } from './services/recognitionService';
@@ -17,7 +18,7 @@ import { usePWAUpdate } from './hooks/usePWAUpdate';
 import type { UserProfile, Discovery } from './types';
 import { toast, Toaster } from 'sonner';
 
-type Screen = 'onboarding' | 'welcome' | 'camera' | 'result' | 'board' | 'parent' | 'chat' | 'voice' | 'live' | 'live-results';
+type Screen = 'onboarding' | 'welcome' | 'camera' | 'result' | 'board' | 'parent' | 'chat' | 'voice' | 'live' | 'live-results' | 'api-setup';
 
 interface SessionDiscovery {
   id: string;
@@ -41,6 +42,7 @@ export default function App() {
   const [currentDiscovery, setCurrentDiscovery] = useState<Discovery | null>(null);
   const [selectedDiscovery, setSelectedDiscovery] = useState<Discovery | null>(null);
   const [sessionDiscoveries, setSessionDiscoveries] = useState<SessionDiscovery[]>([]);
+  const [capturedImageData, setCapturedImageData] = useState<string | null>(null);
 
   // Save profile whenever it changes
   useEffect(() => {
@@ -95,17 +97,29 @@ export default function App() {
     setSessionDiscoveries([]);
   };
 
-  const handleCapture = async () => {
+  const handleCapture = async (imageDataUrl: string) => {
     setIsProcessing(true);
-    
+    setCapturedImageData(imageDataUrl);
+
     try {
-      const result = await recognizeImage();
-      
+      const result = await recognizeImage(imageDataUrl);
+
       if (result.success && result.discovery) {
-        setCurrentDiscovery(result.discovery);
+        // Attach captured image to discovery
+        const discoveryWithImage = {
+          ...result.discovery,
+          capturedImage: imageDataUrl
+        };
+        setCurrentDiscovery(discoveryWithImage);
         setCurrentScreen('result');
       } else {
-        toast.error('Could not identify this item. Try again!');
+        // Show API setup guide if API not configured
+        if (result.error?.includes('not configured')) {
+          setCurrentScreen('api-setup');
+        } else {
+          const errorMsg = result.error || 'Could not identify this item. Try again!';
+          toast.error(errorMsg);
+        }
       }
     } catch (error) {
       console.error('Recognition error:', error);
@@ -276,6 +290,12 @@ export default function App() {
           discoveries={sessionDiscoveries}
           onBack={() => setCurrentScreen('live')}
           onConfirm={handleLiveResultsConfirm}
+        />
+      )}
+
+      {currentScreen === 'api-setup' && (
+        <APISetupGuide
+          onBack={handleBackToWelcome}
         />
       )}
 

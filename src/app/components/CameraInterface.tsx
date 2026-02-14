@@ -1,238 +1,207 @@
-import { useState, useRef } from 'react';
-import { Camera, Focus, Loader2, Settings, Zap, RotateCcw, Image, Film, Leaf, Mic, MessageCircle } from 'lucide-react';
+import { useState, useRef, useEffect } from 'react';
+import { Camera, Focus, Loader2, Settings, Zap, RotateCcw, X } from 'lucide-react';
 import { motion } from 'motion/react';
 import { PipMascot } from './PipMascot';
 import { Button } from './ui/button';
-
-type CameraMode = 'camera' | 'chat' | 'voice' | 'live';
+import { startCameraStream, stopCameraStream, captureFrame, getCameraPermissionStatus } from '../services/cameraService';
+import { validateCapturedImage } from '../services/recognitionService';
 
 interface CameraInterfaceProps {
-  onCapture: () => void;
+  onCapture: (imageDataUrl: string) => void;
   isProcessing: boolean;
   onBack?: () => void;
-  onOpenChat?: () => void;
-  onOpenVoiceMode?: () => void;
-  onOpenLiveDiscovery?: () => void;
 }
 
 export function CameraInterface({
   onCapture,
   isProcessing,
-  onBack,
-  onOpenChat,
-  onOpenVoiceMode,
-  onOpenLiveDiscovery
+  onBack
 }: CameraInterfaceProps) {
-  const [currentMode, setCurrentMode] = useState<CameraMode>('camera');
-  const [pipMessage, setPipMessage] = useState("That looks like a Fern! Keep it in the circle.");
-  const [pipEmotion, setPipEmotion] = useState<'happy' | 'excited' | 'thinking' | 'warning'>('happy');
-  const [flashEnabled, setFlashEnabled] = useState(false);
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const [cameraStream, setCameraStream] = useState<MediaStream | null>(null);
   const [facingMode, setFacingMode] = useState<'user' | 'environment'>('environment');
-  const [touchStart, setTouchStart] = useState<number | null>(null);
-  const containerRef = useRef<HTMLDivElement>(null);
+  const [flashEnabled, setFlashEnabled] = useState(false);
+  const [permissionDenied, setPermissionDenied] = useState(false);
+  const [cameraError, setCameraError] = useState<string | null>(null);
+  const [pipMessage, setPipMessage] = useState('Point at something to discover');
+  const [pipEmotion, setPipEmotion] = useState<'happy' | 'excited' | 'thinking' | 'warning'>('happy');
 
-  const messages = [
-    "That looks like a Fern! Keep it in the circle.",
-    "What did you find?",
-    "Get a bit closer!",
-    "Hold steady...",
-    "Perfect! Now tap to snap!",
-    "Ooh, what's that?",
-    "I'm ready when you are!"
-  ];
+  // Initialize camera on mount
+  useEffect(() => {
+    initializeCamera();
+    return () => {
+      cleanupCamera();
+    };
+  }, []);
 
-  const handleModeChange = (mode: CameraMode) => {
-    if (mode === 'chat' && onOpenChat) {
-      setPipMessage("Opening chat mode...");
-      setPipEmotion('excited');
-      onOpenChat();
-    } else if (mode === 'voice' && onOpenVoiceMode) {
-      setPipMessage("Time to talk!");
-      setPipEmotion('excited');
-      onOpenVoiceMode();
-    } else if (mode === 'live' && onOpenLiveDiscovery) {
-      setPipMessage("Let's find discoveries!");
-      setPipEmotion('excited');
-      onOpenLiveDiscovery();
-    } else {
-      setCurrentMode(mode);
-      setPipMessage("Camera mode ready!");
+  // Switch camera when facing mode changes
+  useEffect(() => {
+    if (cameraStream) {
+      cleanupCamera();
+      setTimeout(() => initializeCamera(), 500);
+    }
+  }, [facingMode]);
+
+  const initializeCamera = async () => {
+    try {
+      if (!videoRef.current) return;
+
+      // Check permissions first
+      const permStatus = await getCameraPermissionStatus();
+      if (permStatus === 'denied') {
+        setPermissionDenied(true);
+        setPipMessage('Camera access denied. Please enable in settings.');
+        setPipEmotion('warning');
+        return;
+      }
+
+      setCameraError(null);
+      setPipMessage('Opening camera...');
+      setPipEmotion('thinking');
+
+      const stream = await startCameraStream(videoRef.current, facingMode);
+      setCameraStream(stream);
+      
+      setPipMessage('Ready to capture!');
       setPipEmotion('happy');
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Could not access camera';
+      setCameraError(message);
+      setPipMessage('Camera not available');
+      setPipEmotion('warning');
+      
+      if (message.includes('NotAllowedError') || message.includes('permission')) {
+        setPermissionDenied(true);
+      }
+    }
+  };
+
+  const cleanupCamera = async () => {
+    if (cameraStream) {
+      await stopCameraStream(cameraStream);
+      setCameraStream(null);
+    }
+  };
+
+  const handleCapture = async () => {
+    if (!videoRef.current) return;
+
+    try {
+      setPipMessage('Capturing...');
+      setPipEmotion('thinking');
+
+      const imageDataUrl = captureFrame(videoRef.current);
+      
+      // Validate the captured image
+      const validation = validateCapturedImage(imageDataUrl);
+      if (!validation.valid) {
+        setPipMessage(validation.error || 'Image not clear enough');
+        setPipEmotion('warning');
+        return;
+      }
+
+      setPipMessage('Got it! Analyzing...');
+      setPipEmotion('excited');
+
+      // Send to parent handler with actual image data
+      onCapture(imageDataUrl);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Failed to capture';
+      setCameraError(message);
+      setPipMessage('Capture failed');
+      setPipEmotion('warning');
     }
   };
 
   const handleFlashToggle = () => {
     setFlashEnabled(!flashEnabled);
-    setPipMessage(flashEnabled ? "Flash off!" : "Flash on!");
+    setPipMessage(flashEnabled ? 'Flash off' : 'Flash on');
     setPipEmotion('excited');
-    setTimeout(() => {
-      setPipEmotion('happy');
-    }, 1500);
+    setTimeout(() => setPipEmotion('happy'), 1500);
   };
 
   const handleCameraFlip = () => {
     setFacingMode(facingMode === 'user' ? 'environment' : 'user');
-    setPipMessage(facingMode === 'user' ? "Back camera ready!" : "Front camera ready!");
+    setPipMessage(facingMode === 'user' ? 'Back camera' : 'Front camera');
     setPipEmotion('excited');
-    setTimeout(() => {
-      setPipEmotion('happy');
-    }, 1500);
+    setTimeout(() => setPipEmotion('happy'), 1500);
   };
 
-  const handleGallery = () => {
-    setPipMessage("Opening your gallery...");
-    setPipEmotion('happy');
-    console.log('Open gallery');
-  };
-
-  const handleRecent = () => {
-    setPipMessage("Checking your recent captures...");
-    setPipEmotion('happy');
-    console.log('Open recent captures');
-  };
-
-  const handlePhotoMode = () => {
-    setPipMessage("Photo mode activated!");
-    setPipEmotion('excited');
-    console.log('Photo mode');
-  };
-
-  const handleDiscoveryMode = () => {
-    if (onOpenLiveDiscovery) {
-      setPipMessage("Let's find discoveries!");
-      setPipEmotion('excited');
-      onOpenLiveDiscovery();
-    }
-  };
-
-  const handleTouchStart = (e: React.TouchEvent<HTMLDivElement>) => {
-    setTouchStart(e.touches[0].clientX);
-  };
-
-  const handleTouchEnd = (e: React.TouchEvent<HTMLDivElement>) => {
-    if (touchStart === null) return;
-
-    const touchEnd = e.changedTouches[0].clientX;
-    const diff = touchStart - touchEnd;
-
-    // Swipe left - next mode
-    if (diff > 50) {
-      setPipMessage("Swiping to next mode...");
-      setPipEmotion('excited');
-    }
-    // Swipe right - previous mode
-    else if (diff < -50) {
-      setPipMessage("Swiping to previous mode...");
-      setPipEmotion('excited');
-    }
-
-    setTouchStart(null);
-  };
-
-  return (
-    <div
-      ref={containerRef}
-      onTouchStart={handleTouchStart}
-      onTouchEnd={handleTouchEnd}
-      className="relative w-full h-full bg-gradient-to-b from-[#8B6F5E] via-[#A88B73] to-[#8B6F5E] overflow-hidden"
-    >
-      {/* Simulated camera view */}
-      <div className="absolute inset-0 flex items-center justify-center opacity-20">
-        <div className="text-center text-white">
-          <Camera className="w-24 h-24 mx-auto mb-2" />
-          <p className="text-sm">Camera Preview</p>
+  if (permissionDenied) {
+    return (
+      <div className="relative w-full h-full bg-gradient-to-b from-[#8B6F5E] via-[#A88B73] to-[#8B6F5E] overflow-hidden flex flex-col items-center justify-center">
+        <div className="text-center z-20 px-6">
+          <motion.div
+            initial={{ scale: 0 }}
+            animate={{ scale: 1 }}
+            className="text-6xl mb-6"
+          >
+            📷
+          </motion.div>
+          <h2 className="text-2xl font-bold text-white mb-4">Camera Access Required</h2>
+          <p className="text-white/80 mb-6 text-lg">
+            Pocket Science needs camera access to identify objects. Please enable camera permissions in your browser settings.
+          </p>
+          <Button
+            onClick={onBack}
+            className="bg-white text-[#8B6F5E] hover:bg-gray-100 font-bold px-8 py-3 rounded-full"
+          >
+            Go Back
+          </Button>
         </div>
       </div>
+    );
+  }
 
-      {/* Top controls - responsive */}
-      <div className="absolute top-4 sm:top-6 left-0 right-0 z-20 px-4 sm:px-6">
-        <div className="flex items-center justify-between gap-2 sm:gap-4">
-          {/* Flash button */}
-          <motion.button
-            whileTap={{ scale: 0.95 }}
-            whileHover={{ scale: 1.05 }}
-            onClick={handleFlashToggle}
-            title={flashEnabled ? "Turn flash off" : "Turn flash on"}
-            aria-label={flashEnabled ? "Flash off" : "Flash on"}
-            className={`w-12 h-12 sm:w-14 sm:h-14 rounded-full border-2 flex items-center justify-center transition-all ${
-              flashEnabled
-                ? 'bg-white border-white text-[#8B6F5E] shadow-lg'
-                : 'bg-transparent border-white/60 text-white hover:border-white/80'
-            }`}
-          >
-            <Zap className="w-5 h-5 sm:w-6 sm:h-6" fill={flashEnabled ? 'currentColor' : 'none'} />
-          </motion.button>
+  return (
+    <div className="relative w-full h-full bg-black overflow-hidden">
+      {/* Video Stream */}
+      <video
+        ref={videoRef}
+        className="absolute inset-0 w-full h-full object-cover"
+        playsInline
+        muted
+      />
 
-          {/* Lens Mode button - responsive text and padding */}
-          <motion.button
-            whileTap={{ scale: 0.95 }}
-            whileHover={{ scale: 1.05 }}
-            className="px-6 sm:px-8 py-2.5 sm:py-3 rounded-full bg-gradient-to-r from-[#FF9B7A] to-[#FFA88A] text-white font-bold text-xs sm:text-sm tracking-wider shadow-lg transition-all hover:shadow-xl"
-            title="Lens mode"
-            aria-label="Lens mode"
-          >
-            LENS MODE
-          </motion.button>
+      {/* Scrim overlay for better UI visibility */}
+      <div className="absolute inset-0 bg-black/20 pointer-events-none" />
 
-          <div className="flex items-center gap-2 sm:gap-3">
-            {/* Gallery button - moved to top */}
-            <motion.button
-              whileTap={{ scale: 0.95 }}
-              onClick={handleGallery}
-              title="Gallery"
-              aria-label="Gallery"
-              className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-black/40 border-2 border-white/30 text-white flex items-center justify-center transition-all hover:border-white/50 active:bg-black/60"
-            >
-              <Image className="w-4 h-4 sm:w-5 sm:h-5" />
-            </motion.button>
-
-            {/* Recent button - moved to top */}
-            <motion.button
-              whileTap={{ scale: 0.95 }}
-              onClick={handleRecent}
-              title="Recent"
-              aria-label="Recent captures"
-              className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-black/40 border-2 border-white/30 text-white flex items-center justify-center transition-all hover:border-white/50 active:bg-black/60"
-            >
-              <Film className="w-4 h-4 sm:w-5 sm:h-5" />
-            </motion.button>
-
-            {/* Settings button */}
-            <motion.button
-              whileTap={{ scale: 0.95 }}
-              whileHover={{ scale: 1.05 }}
-              onClick={onBack}
-              title="Settings"
-              aria-label="Settings"
-              className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-transparent border-2 border-white/60 text-white flex items-center justify-center transition-all hover:border-white/80"
-            >
-              <Settings className="w-4 h-4 sm:w-5 sm:h-5" />
-            </motion.button>
-          </div>
-        </div>
-
-        {/* Camera flip button - below top controls on mobile */}
+      {/* Top Controls */}
+      <div className="absolute top-6 left-0 right-0 z-20 px-6 flex items-center justify-between">
+        {/* Flash button */}
         <motion.button
           whileTap={{ scale: 0.95 }}
           whileHover={{ scale: 1.05 }}
-          onClick={handleCameraFlip}
-          title={`Switch to ${facingMode === 'user' ? 'back' : 'front'} camera`}
-          aria-label={`Switch to ${facingMode === 'user' ? 'back' : 'front'} camera`}
-          className="w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-transparent border-2 border-white/60 text-white flex items-center justify-center transition-all hover:border-white/80 mt-3 sm:mt-4"
+          onClick={handleFlashToggle}
+          className={`w-12 h-12 rounded-full border-2 flex items-center justify-center transition-all ${
+            flashEnabled
+              ? 'bg-white border-white text-black shadow-lg'
+              : 'bg-transparent border-white/60 text-white hover:border-white/80'
+          }`}
         >
-          <RotateCcw className="w-5 h-5 sm:w-6 sm:h-6" />
+          <Zap className="w-6 h-6" fill={flashEnabled ? 'currentColor' : 'none'} />
+        </motion.button>
+
+        {/* Settings/Back button */}
+        <motion.button
+          whileTap={{ scale: 0.95 }}
+          whileHover={{ scale: 1.05 }}
+          onClick={onBack}
+          className="w-12 h-12 rounded-full bg-transparent border-2 border-white/60 text-white flex items-center justify-center transition-all hover:border-white/80"
+        >
+          <X className="w-6 h-6" />
         </motion.button>
       </div>
 
-      {/* Center viewfinder - responsive & interactive */}
+      {/* Center Viewfinder */}
       {!isProcessing && (
         <motion.div
           className="absolute inset-0 flex items-center justify-center pointer-events-none"
           initial={{ opacity: 0, scale: 1.1 }}
           animate={{ opacity: 1, scale: 1 }}
         >
-          <div className="relative w-64 h-64 sm:w-80 sm:h-80 md:w-96 md:h-96">
-            {/* Outer dashed circle - responsive stroke */}
+          <div className="relative w-64 h-64 sm:w-80 sm:h-80">
+            {/* Outer dashed circle */}
             <svg className="absolute inset-0 w-full h-full" viewBox="0 0 320 320" preserveAspectRatio="xMidYMid meet">
               {/* Scanning animation circle */}
               <motion.circle
@@ -267,7 +236,7 @@ export function CameraInterface({
               />
             </svg>
 
-            {/* Inner solid circle */}
+            {/* Inner circle */}
             <motion.div
               className="absolute inset-4 rounded-full border-4 border-white/80"
               animate={{
@@ -284,9 +253,9 @@ export function CameraInterface({
               }}
             />
 
-            {/* Center dot - responsive size */}
+            {/* Center dot */}
             <motion.div
-              className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-3 h-3 sm:w-4 sm:h-4 rounded-full bg-[#FF9B7A] shadow-lg"
+              className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-4 h-4 rounded-full bg-[#FF9B7A] shadow-lg"
               animate={{
                 scale: [1, 1.4, 1],
                 boxShadow: [
@@ -328,12 +297,11 @@ export function CameraInterface({
         </motion.div>
       )}
 
-      {/* Pip mascot with speech bubble - bottom left, responsive */}
+      {/* Pip Mascot - bottom left */}
       {!isProcessing && (
-        <div className="absolute bottom-32 sm:bottom-40 left-4 sm:left-6 z-10 flex items-end gap-2 sm:gap-3">
-          {/* Pip avatar */}
+        <div className="absolute bottom-40 left-6 z-10 flex items-end gap-3">
           <motion.div
-            className="flex-shrink-0 w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-gradient-to-br from-teal-400 to-cyan-500 border-4 border-white flex items-center justify-center shadow-lg"
+            className="flex-shrink-0 w-16 h-16 rounded-full bg-gradient-to-br from-teal-400 to-cyan-500 border-4 border-white flex items-center justify-center shadow-lg"
             animate={{
               scale: [1, 1.05, 1],
               rotate: pipEmotion === 'excited' ? [0, -3, 3, 0] : 0
@@ -342,39 +310,35 @@ export function CameraInterface({
               duration: pipEmotion === 'excited' ? 0.6 : 2,
               repeat: Infinity
             }}
-            whileTap={{ scale: 0.95 }}
           >
-            <div className="text-xl sm:text-2xl">
-              {pipEmotion === 'excited' ? '😄' : pipEmotion === 'thinking' ? '🤔' : '😊'}
+            <div className="text-2xl">
+              {pipEmotion === 'excited' ? '😄' : pipEmotion === 'thinking' ? '🤔' : pipEmotion === 'warning' ? '⚠️' : '😊'}
             </div>
           </motion.div>
 
-          {/* Speech bubble - responsive width and text */}
           <motion.div
-            className="bg-white rounded-3xl rounded-bl-none px-4 sm:px-5 py-2.5 sm:py-3 shadow-lg max-w-[200px] sm:max-w-[240px]"
+            className="bg-white rounded-3xl rounded-bl-none px-5 py-3 shadow-lg max-w-[200px] sm:max-w-[240px]"
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ type: 'spring', damping: 12 }}
             key={pipMessage}
           >
-            <p className="text-gray-900 font-semibold text-xs sm:text-sm leading-tight break-words">
+            <p className="text-gray-900 font-semibold text-sm leading-tight break-words">
               {pipMessage}
             </p>
           </motion.div>
         </div>
       )}
 
-      {/* Bottom controls - Main capture button with mode selection below */}
+      {/* Bottom Controls */}
       {!isProcessing && (
-        <div className="absolute bottom-0 left-0 right-0 z-10 pb-6 sm:pb-8 flex flex-col items-center">
-          {/* Main capture button - centered and largest */}
+        <div className="absolute bottom-0 left-0 right-0 z-10 pb-8 flex flex-col items-center">
+          {/* Main capture button */}
           <motion.button
             whileTap={{ scale: 0.92 }}
             whileHover={{ scale: 1.05 }}
-            onClick={onCapture}
-            title="Capture photo"
-            aria-label="Capture photo"
-            className="relative w-20 h-20 sm:w-24 sm:h-24 flex items-center justify-center flex-shrink-0 mb-6 sm:mb-8"
+            onClick={handleCapture}
+            className="relative w-24 h-24 flex items-center justify-center flex-shrink-0 mb-8"
           >
             {/* Outer ring */}
             <div className="absolute inset-0 rounded-full border-4 border-white" />
@@ -382,70 +346,36 @@ export function CameraInterface({
             <div className="absolute inset-2 rounded-full bg-gradient-to-br from-[#FF9B7A] to-[#FFA88A] border-4 border-white" />
             {/* Inner content */}
             <div className="absolute inset-4 rounded-full border-2 border-white/40 flex items-center justify-center">
-              <Focus className="w-6 h-6 sm:w-7 sm:h-7 text-white" />
+              <Focus className="w-7 h-7 text-white" />
             </div>
           </motion.button>
 
-          {/* Mode selection buttons - responsive flex layout */}
-          <div className="flex flex-wrap justify-center gap-4 sm:gap-6 px-4 sm:px-6">
-            {/* Photo mode */}
-            <motion.button
-              whileTap={{ scale: 0.95 }}
-              whileHover={{ scale: 1.05 }}
-              onClick={handlePhotoMode}
-              title="Photo mode"
-              aria-label="Photo mode"
-              className="w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-black/40 border-2 border-white/30 text-white flex items-center justify-center flex-col transition-all hover:border-white/50 active:bg-black/60"
-            >
-              <Camera className="w-5 h-5 sm:w-6 sm:h-6 mb-1" />
-              <span className="text-xs font-semibold hidden sm:block">Photo</span>
-            </motion.button>
+          {/* Camera flip button */}
+          <motion.button
+            whileTap={{ scale: 0.95 }}
+            whileHover={{ scale: 1.05 }}
+            onClick={handleCameraFlip}
+            className="w-14 h-14 rounded-full bg-white/20 border-2 border-white/40 text-white flex items-center justify-center transition-all hover:border-white/60"
+          >
+            <RotateCcw className="w-6 h-6" />
+          </motion.button>
 
-            {/* Discovery mode */}
-            <motion.button
-              whileTap={{ scale: 0.95 }}
-              whileHover={{ scale: 1.05 }}
-              onClick={handleDiscoveryMode}
-              title="Discovery mode"
-              aria-label="Live discovery mode"
-              className="w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-black/40 border-2 border-white/30 text-white flex items-center justify-center flex-col transition-all hover:border-white/50 active:bg-black/60"
-            >
-              <Leaf className="w-5 h-5 sm:w-6 sm:h-6 mb-1" />
-              <span className="text-xs font-semibold hidden sm:block">Discovery</span>
-            </motion.button>
-
-            {/* Voice mode */}
-            <motion.button
-              whileTap={{ scale: 0.95 }}
-              whileHover={{ scale: 1.05 }}
-              onClick={() => handleModeChange('voice')}
-              title="Voice mode"
-              aria-label="Voice mode"
-              className="w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-black/40 border-2 border-white/30 text-white flex items-center justify-center flex-col transition-all hover:border-white/50 active:bg-black/60"
-            >
-              <Mic className="w-5 h-5 sm:w-6 sm:h-6 mb-1" />
-              <span className="text-xs font-semibold hidden sm:block">Voice</span>
-            </motion.button>
-
-            {/* Chat mode */}
-            <motion.button
-              whileTap={{ scale: 0.95 }}
-              whileHover={{ scale: 1.05 }}
-              onClick={() => handleModeChange('chat')}
-              title="Chat mode"
-              aria-label="Chat mode"
-              className="w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-black/40 border-2 border-white/30 text-white flex items-center justify-center flex-col transition-all hover:border-white/50 active:bg-black/60"
-            >
-              <MessageCircle className="w-5 h-5 sm:w-6 sm:h-6 mb-1" />
-              <span className="text-xs font-semibold hidden sm:block">Chat</span>
-            </motion.button>
-          </div>
-
-          {/* Home indicator bar */}
-          <div className="flex justify-center mt-6 sm:mt-8">
-            <div className="w-24 sm:w-32 h-1 bg-white/40 rounded-full" />
+          {/* Home indicator */}
+          <div className="flex justify-center mt-6">
+            <div className="w-32 h-1 bg-white/40 rounded-full" />
           </div>
         </div>
+      )}
+
+      {/* Error message */}
+      {cameraError && !permissionDenied && (
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="absolute bottom-20 left-6 right-6 bg-red-500/90 text-white rounded-lg p-4 z-20"
+        >
+          <p className="font-semibold">{cameraError}</p>
+        </motion.div>
       )}
     </div>
   );
