@@ -1,0 +1,60 @@
+{
+  "expo": {
+    "name": "Educational AI Explorer",
+    "slug": "educational-ai-explorer",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#ffffff"
+    },
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+    "ios": {
+      "supportsTabletMode": true,
+      "infoPlist": {
+        "NSCameraUsageDescription": "We need camera access to identify objects and learn about them",
+        "NSMicrophoneUsageDescription": "We need microphone access for voice mode",
+        "NSPhotoLibraryUsageDescription": "We need access to your photos to learn from them"
+      }
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#ffffff"
+      },
+      "permissions": [
+        "android.permission.CAMERA",
+        "android.permission.RECORD_AUDIO",
+        "android.permission.READ_EXTERNAL_STORAGE",
+        "android.permission.WRITE_EXTERNAL_STORAGE"
+      ]
+    },
+    "web": {
+      "bundler": "metro",
+      "output": "static",
+      "favicon": "./assets/favicon.png"
+    },
+    "plugins": [
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "We need camera access to identify objects and learn about them",
+          "microphonePermission": "We need microphone access for voice mode"
+        }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Allow Educational AI Explorer to access your photos.",
+          "cameraPermission": "Allow Educational AI Explorer to access your camera."
+        }
+      ]
+    ],
+    "scheme": "educationalai"
+  }
+}
