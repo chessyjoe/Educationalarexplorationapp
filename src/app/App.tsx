@@ -10,8 +10,10 @@ import { ChatScreen } from './components/ChatScreen';
 import { VoiceMode } from './components/VoiceMode';
 import { LiveDiscovery } from './components/LiveDiscovery';
 import { LiveDiscoveryResults } from './components/LiveDiscoveryResults';
+import { PWAInstallPrompt } from './components/PWAInstallPrompt';
 import { loadUserProfile, saveUserProfile, addDiscovery, getDefaultProfile } from './utils/storage';
 import { recognizeImage } from './services/recognitionService';
+import { usePWAUpdate } from './hooks/usePWAUpdate';
 import type { UserProfile, Discovery } from './types';
 import { toast, Toaster } from 'sonner';
 
@@ -26,6 +28,9 @@ interface SessionDiscovery {
 }
 
 export default function App() {
+  // Enable PWA update handling
+  usePWAUpdate();
+
   const [currentScreen, setCurrentScreen] = useState<Screen>(() => {
     // Check if user has completed onboarding
     const hasCompletedOnboarding = localStorage.getItem('pocket_science_onboarding_complete');
@@ -187,6 +192,7 @@ export default function App() {
   return (
     <div className="w-full h-screen overflow-hidden bg-gray-100">
       <Toaster position="top-center" richColors />
+      <PWAInstallPrompt />
       
       {currentScreen === 'onboarding' && (
         <OnboardingScreen
