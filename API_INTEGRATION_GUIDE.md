@@ -217,24 +217,36 @@ If you have your own ML service:
 export async function recognizeImage(imageDataUrl: string): Promise<RecognitionResult> {
   const base64Image = imageDataUrl.split(',')[1];
   
-  const response = await fetch('https://your-ml-service.com/predict', {
+    const response = await fetch('http://localhost:8000/api/discovery', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      'Authorization': `Bearer ${import.meta.env.VITE_ML_API_KEY}`
     },
     body: JSON.stringify({
-      image: base64Image
+      child_id: "demo_child_123", // Fixed ID for prototype
+      media_type: "image",
+      media_data: base64Image,
+      discovery_description: "I found this!", // Default description if none provided
+      timestamp: new Date().toISOString()
     })
   });
 
   const data = await response.json();
   
   // Transform response to Discovery object
+  // The backend returns a specific format, we need to map it to the frontend Discovery type
   const discovery: Discovery = {
     id: `discovery-${Date.now()}`,
-    name: data.objectName,
-    // ... map other fields
+    name: data.identification?.name || "Mystery Object",
+    scientificName: data.identification?.scientific_name,
+    category: data.identification?.name ? "nature" : "unknown", // Simple mapping
+    type: "plant", // Hardcoded default, should map from backend
+    color: "green",
+    habitat: "garden",
+    isDangerous: data.safety_status === "danger" || data.safety_status === "caution",
+    story: data.story,
+    funFact: data.identification?.facts ? data.identification.facts[0] : "It's amazing!",
+    imageUrl: imageDataUrl,
     discoveredAt: new Date()
   };
 

@@ -173,8 +173,8 @@ export function ResultScreen({ discovery, onAddToBoard, onTryAgain }: ResultScre
 
           {/* Dynamic image area - responsive and larger */}
           <div className="mb-6 rounded-[1.5rem] overflow-hidden bg-gray-100 shadow-[0_4px_12px_rgba(0,0,0,0.1)]">
-            <ImageWithFallback
-              src={`https://source.unsplash.com/400x300/?${discovery.imageUrl}`}
+            <img
+              src={discovery.capturedImage || discovery.imageUrl}
               alt={discovery.name}
               className="w-full max-h-96 object-cover"
             />

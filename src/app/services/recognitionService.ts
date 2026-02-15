@@ -19,27 +19,53 @@ export async function recognizeImage(imageDataUrl: string): Promise<RecognitionR
   }
 
   try {
-    // TODO: Replace with actual ML API call
-    // Example using Google Vision API:
-    // const response = await fetch('https://vision.googleapis.com/v1/images:annotate?key=YOUR_KEY', {
-    //   method: 'POST',
-    //   body: JSON.stringify({
-    //     requests: [{
-    //       image: { content: imageDataUrl.split(',')[1] },
-    //       features: [
-    //         { type: 'LABEL_DETECTION', maxResults: 10 },
-    //         { type: 'WEB_DETECTION' },
-    //         { type: 'SAFE_SEARCH_DETECTION' }
-    //       ]
-    //     }]
-    //   })
-    // });
-    
-    // Placeholder: Return error indicating API not configured
-    return {
-      success: false,
-      error: 'Image recognition API not configured. Please set up a real ML service.'
+    // Call Pip System Backend
+    const response = await fetch('http://localhost:8000/api/discovery', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        child_id: "demo_child_123", // Fixed ID for prototype
+        media_type: "image",
+        media_data: imageDataUrl, // Full data URL
+        discovery_description: "I found this!", // Default description
+        timestamp: new Date().toISOString()
+      })
+    });
+
+    if (!response.ok) {
+      console.error("Backend response not OK:", response.status, response.statusText);
+      throw new Error(`Backend Error: ${response.statusText}`);
+    }
+
+    const data = await response.json();
+    console.log("Backend Data Received:", data);
+
+    // Transform backend response to Discovery object
+    const discovery: Discovery = {
+      id: `discovery-${Date.now()}`,
+      name: data.identification?.name || "Mystery Object",
+      scientificName: data.identification?.scientific_name,
+      category: data.identification?.name ? "nature" : "unknown",
+      type: "flora", // Fixed: Matches 'flora' | 'fauna' type definition
+      color: "green",
+      habitat: "garden",
+      isDangerous: data.safety_status === "danger" || data.safety_status === "caution",
+      story: data.story?.story || data.story || "No story available.", // Handle nested story object if necessary
+      funFact: data.identification?.facts ? data.identification.facts[0] : "It's amazing!",
+      imageUrl: imageDataUrl,
+      discoveredAt: new Date(),
+      // Add extra fields if Discovery type supports them, otherwise they are ignored
     };
+
+    console.log("Mapped Discovery Object:", discovery);
+
+    return {
+      success: true,
+      discovery
+    };
+
   } catch (error) {
     console.error('Error recognizing image:', error);
     return {
@@ -90,7 +116,7 @@ export function adaptStoryForAge(story: string, age: number): string {
     // Add more scientific detail for older children
     return story;
   }
-  
+
   return story;
 }
 
