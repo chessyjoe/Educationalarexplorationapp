@@ -9,7 +9,8 @@ export interface Discovery {
   isDangerous: boolean;
   story: string;
   funFact: string;
-  imageUrl: string;
+  imageUrl: string; // For API response reference
+  capturedImage?: string; // Data URL of the actual captured image
   discoveredAt: Date;
   followUpActivity?: string;
 }
@@ -39,4 +40,5 @@ export interface RecognitionResult {
   discovery?: Discovery;
   isDangerous?: boolean;
   warningMessage?: string;
+  error?: string;
 }
