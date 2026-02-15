@@ -128,8 +128,26 @@ def get_user_name(token: Dict) -> Optional[str]:
     return token.get('name')
 
 
+async def get_optional_credentials(
+    authorization: Optional[str] = None
+) -> Optional[HTTPAuthorizationCredentials]:
+    """
+    Extract optional Bearer token from Authorization header.
+    Returns None if no Authorization header is provided.
+    """
+    if authorization is None:
+        return None
+    
+    # Parse Bearer token manually
+    if not authorization.startswith("Bearer "):
+        return None
+    
+    token = authorization[7:]  # Remove "Bearer " prefix
+    return HTTPAuthorizationCredentials(scheme="Bearer", credentials=token)
+
+
 async def optional_auth(
-    credentials: Optional[HTTPAuthorizationCredentials] = Security(security, auto_error=False)
+    authorization: Optional[str] = Depends(lambda request: request.headers.get("authorization"))
 ) -> Optional[Dict]:
     """
     Optional authentication dependency.
@@ -138,17 +156,17 @@ async def optional_auth(
     Useful for endpoints that can work with or without authentication.
     
     Args:
-        credentials: HTTP Authorization credentials (optional)
+        authorization: Authorization header value (optional)
         
     Returns:
         Decoded token dict if valid token provided, None otherwise
     """
-    if credentials is None:
+    if authorization is None or not authorization.startswith("Bearer "):
         return None
     
     try:
         from firebase_admin import auth
-        token = credentials.credentials
+        token = authorization[7:]  # Remove "Bearer " prefix
         return auth.verify_id_token(token)
     except Exception as e:
         logger.debug(f"Optional auth failed: {str(e)}")

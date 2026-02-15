@@ -1,12 +1,9 @@
-import { useState } from 'react';
-import { motion } from 'motion/react';
-import { ArrowLeft, Shield, Trash2, User, Calendar, BarChart3, Award } from 'lucide-react';
+import { ArrowLeft, Shield, Trash2, User, BarChart3 } from 'lucide-react';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Label } from './ui/label';
 import { Card } from './ui/card';
 import type { UserProfile } from '@/app/types';
-import { verifyParentPIN } from '@/app/utils/storage';
 
 interface ParentDashboardProps {
   profile: UserProfile;
@@ -16,19 +13,6 @@ interface ParentDashboardProps {
 }
 
 export function ParentDashboard({ profile, onBack, onUpdateProfile, onClearData }: ParentDashboardProps) {
-  const [pinInput, setPinInput] = useState('');
-  const [isUnlocked, setIsUnlocked] = useState(false);
-  const [error, setError] = useState('');
-
-  const handleUnlock = () => {
-    if (verifyParentPIN(pinInput)) {
-      setIsUnlocked(true);
-      setError('');
-    } else {
-      setError('Incorrect PIN. Try: 1234');
-    }
-  };
-
   const handleClearData = () => {
     if (window.confirm('Are you sure you want to clear all discoveries? This cannot be undone.')) {
       onClearData();
@@ -36,57 +20,8 @@ export function ParentDashboard({ profile, onBack, onUpdateProfile, onClearData 
     }
   };
 
-  if (!isUnlocked) {
-    return (
-      <div className="min-h-screen bg-gradient-to-b from-indigo-500 to-purple-600 flex flex-col items-center justify-center p-6">
-        <motion.div
-          initial={{ scale: 0.9, opacity: 0 }}
-          animate={{ scale: 1, opacity: 1 }}
-          className="bg-white rounded-[2rem] p-8 max-w-md w-full shadow-[0_20px_0_rgba(0,0,0,0.12),0_25px_50px_rgba(0,0,0,0.15)]"
-        >
-          <div className="flex items-center justify-center mb-6">
-            <div className="w-20 h-20 bg-indigo-100 rounded-full flex items-center justify-center">
-              <Shield className="w-12 h-12 text-indigo-600" />
-            </div>
-          </div>
-
-          <h1 className="text-2xl font-bold text-center mb-2">Parent Dashboard</h1>
-          <p className="text-center text-gray-600 mb-6">Enter PIN to access parental controls</p>
-
-          <div className="space-y-4">
-            <div>
-              <Label htmlFor="pin">PIN Code</Label>
-              <Input
-                id="pin"
-                type="password"
-                placeholder="Enter PIN"
-                value={pinInput}
-                onChange={(e) => setPinInput(e.target.value)}
-                onKeyDown={(e) => e.key === 'Enter' && handleUnlock()}
-                className="text-center text-2xl tracking-widest h-14"
-                maxLength={4}
-              />
-              {error && <p className="text-red-500 text-sm mt-2">{error}</p>}
-            </div>
-
-            <Button onClick={handleUnlock} className="w-full h-12" size="lg">
-              Unlock Dashboard
-            </Button>
-
-            <Button onClick={onBack} variant="outline" className="w-full">
-              Back to App
-            </Button>
-
-            <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 mt-4">
-              <p className="text-xs text-blue-800">
-                <strong>Demo PIN:</strong> 1234
-              </p>
-            </div>
-          </div>
-        </motion.div>
-      </div>
-    );
-  }
+  // Dashboard is now protected by Firebase Google Authentication at App.tsx level
+  // No local PIN authentication needed
 
   const categoryStats = profile.discoveries.reduce((acc, d) => {
     acc[d.category] = (acc[d.category] || 0) + 1;

@@ -12,7 +12,11 @@ import { LiveDiscovery } from './components/LiveDiscovery';
 import { LiveDiscoveryResults } from './components/LiveDiscoveryResults';
 import { APISetupGuide } from './components/APISetupGuide';
 import { PWAInstallPrompt } from './components/PWAInstallPrompt';
-import { loadUserProfile, saveUserProfile, addDiscovery, getDefaultProfile } from './utils/storage';
+import { AuthModal } from '@/components/auth/AuthModal';
+import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
+import { useAuth } from '@/contexts/AuthContext';
+import { UserProfileButton } from '@/components/user/UserProfileButton';
+import { loadUserProfile, saveUserProfile, addDiscovery } from './utils/storage';
 import { recognizeImage } from './services/recognitionService';
 import { usePWAUpdate } from './hooks/usePWAUpdate';
 import type { UserProfile, Discovery } from './types';
@@ -31,6 +35,10 @@ interface SessionDiscovery {
 export default function App() {
   // Enable PWA update handling
   usePWAUpdate();
+
+  // Auth state
+  const { user } = useAuth();
+  const [showAuthModal, setShowAuthModal] = useState(false);
 
   const [currentScreen, setCurrentScreen] = useState<Screen>(() => {
     // Check if user has completed onboarding
@@ -58,6 +66,12 @@ export default function App() {
   };
 
   const handleOpenParentDashboard = () => {
+    // Check if user is authenticated
+    if (!user) {
+      setShowAuthModal(true);
+      toast.info('Please sign in to access Parental Dashboard');
+      return;
+    }
     setCurrentScreen('parent');
   };
 
@@ -132,19 +146,19 @@ export default function App() {
   const handleAddToBoard = () => {
     if (currentDiscovery) {
       const updatedProfile = addDiscovery(profile, currentDiscovery);
-      
+
       // Check if discovery was new
       if (updatedProfile.discoveries.length > profile.discoveries.length) {
         setProfile(updatedProfile);
         toast.success(`${currentDiscovery.name} added to your museum!`, {
           description: 'Check your board to see your collection.'
         });
-        
+
         // Check for newly unlocked badges
         const newlyUnlocked = updatedProfile.badges.filter(
           (badge, index) => badge.unlocked && !profile.badges[index].unlocked
         );
-        
+
         if (newlyUnlocked.length > 0) {
           setTimeout(() => {
             newlyUnlocked.forEach(badge => {
@@ -157,7 +171,7 @@ export default function App() {
       } else {
         toast.info('You already have this in your collection!');
       }
-      
+
       setCurrentScreen('camera');
       setCurrentDiscovery(null);
     }
@@ -202,12 +216,12 @@ export default function App() {
     setCurrentScreen('welcome');
     toast.success(`Welcome, ${name}! Let's start exploring!`);
   };
-  
+
   return (
     <div className="w-full h-screen overflow-hidden bg-gray-100">
       <Toaster position="top-center" richColors />
       <PWAInstallPrompt />
-      
+
       {currentScreen === 'onboarding' && (
         <OnboardingScreen
           onComplete={handleCompleteOnboarding}
@@ -253,12 +267,20 @@ export default function App() {
       )}
 
       {currentScreen === 'parent' && (
-        <ParentDashboard
-          profile={profile}
-          onBack={handleBackToWelcome}
-          onUpdateProfile={handleUpdateProfile}
-          onClearData={handleClearData}
-        />
+        <ProtectedRoute
+          onAuthRequired={() => {
+            setShowAuthModal(true);
+            setCurrentScreen('welcome');
+            toast.info('Please sign in to access Parental Dashboard');
+          }}
+        >
+          <ParentDashboard
+            profile={profile}
+            onBack={handleBackToWelcome}
+            onUpdateProfile={handleUpdateProfile}
+            onClearData={handleClearData}
+          />
+        </ProtectedRoute>
       )}
 
       {currentScreen === 'chat' && (
@@ -305,6 +327,17 @@ export default function App() {
           onClose={() => setSelectedDiscovery(null)}
         />
       )}
+
+      {/* Auth Modal */}
+      <AuthModal
+        isOpen={showAuthModal}
+        onClose={() => setShowAuthModal(false)}
+      />
+
+      {/* User Profile Button - Fixed position in top-right */}
+      <div className="fixed top-4 right-4 z-40">
+        <UserProfileButton />
+      </div>
     </div>
   );
 }
