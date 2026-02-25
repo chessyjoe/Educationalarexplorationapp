@@ -18,15 +18,11 @@ class SpecialistAgent:
     async def analyze(self, discovery_input: Dict[str, Any]) -> Dict[str, Any]:
         """
         Analyze a discovery from this specialist's domain perspective.
-        
-        Args:
-            discovery_input: Contains 'discovery_description' and metadata
-            
-        Returns:
-            SpecialistOutput as dict
+        Uses image data when available, falls back to text description.
         """
-        description = discovery_input.get("discovery_description", "")
-        
+        description = discovery_input.get("discovery_description", "I found something!")
+        image_base64 = discovery_input.get("media_data", "")
+
         system_instruction = f"""You are a {self.domain} expert teaching children aged 5-10 about nature.
 Your job is to identify {self.domain.lower()} and share fascinating, age-appropriate facts.
 
@@ -37,9 +33,8 @@ Guidelines:
 - Include conservation status if relevant
 - Be enthusiastic and encouraging"""
 
-        prompt = f"""A child has discovered this {self.domain.lower()}:
-
-{description}
+        prompt = f"""A child has discovered this {self.domain.lower()}.
+{f'They described it as: {description}' if description and description != 'I found this!' else ''}
 
 Identify it and share interesting facts. Respond as JSON:
 {{
@@ -52,22 +47,34 @@ Identify it and share interesting facts. Respond as JSON:
     "identification_confidence": <0.0 to 1.0>
 }}"""
 
+        schema = {
+            "species": "string",
+            "common_name": "string",
+            "scientific_name": "string or null",
+            "facts": "array of strings",
+            "habitat": "string",
+            "conservation_status": "string or null",
+            "identification_confidence": "number"
+        }
+
         try:
-            response = await self.client.generate_with_schema(
-                prompt=prompt,
-                schema={
-                    "species": "string",
-                    "common_name": "string",
-                    "scientific_name": "string or null",
-                    "facts": "array of strings",
-                    "habitat": "string",
-                    "conservation_status": "string or null",
-                    "identification_confidence": "number"
-                },
-                system_instruction=system_instruction,
-                temperature=0.7
-            )
-            
+            # Use image if available, otherwise fall back to text
+            if image_base64:
+                response = await self.client.generate_with_image(
+                    image_base64=image_base64,
+                    prompt=prompt,
+                    schema=schema,
+                    system_instruction=system_instruction,
+                    temperature=0.7
+                )
+            else:
+                response = await self.client.generate_with_schema(
+                    prompt=prompt,
+                    schema=schema,
+                    system_instruction=system_instruction,
+                    temperature=0.7
+                )
+
             result = SpecialistOutput(
                 agent_name=self.name,
                 species=response.get("species"),
@@ -78,9 +85,9 @@ Identify it and share interesting facts. Respond as JSON:
                 conservation_status=response.get("conservation_status"),
                 identification_confidence=response.get("identification_confidence", 0.0)
             )
-            
+
             return result.to_dict()
-            
+
         except Exception as e:
             print(f"{self.name} error: {e}")
             # Return fallback response
@@ -92,6 +99,7 @@ Identify it and share interesting facts. Respond as JSON:
                 habitat="Unknown",
                 identification_confidence=0.3
             ).to_dict()
+
 
 
 class BotanistAgent(SpecialistAgent):

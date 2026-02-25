@@ -176,10 +176,11 @@ export function ParentDashboard({ profile, onBack, onUpdateProfile, onClearData 
                 <span className="text-white text-xs">✓</span>
               </div>
               <div>
-                <p className="font-semibold text-green-900">Local Storage Only</p>
-                <p className="text-green-700">All data stays on this device</p>
+                <p className="font-semibold text-green-900">Secure Cloud Storage</p>
+                <p className="text-green-700">Discoveries are saved to your private Firebase account — not shared with anyone</p>
               </div>
             </div>
+
 
             <div className="flex items-start gap-3 bg-green-50 p-3 rounded-xl">
               <div className="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">

@@ -4,6 +4,7 @@ import { Mic, MicOff, Volume2, ArrowLeft, Loader } from 'lucide-react';
 import { Button } from './ui/button';
 import { PipMascot } from './PipMascot';
 import type { UserProfile } from '@/app/types';
+import { chatAPI } from '@/services/apiService';
 
 interface VoiceModeProps {
   profile: UserProfile;
@@ -22,7 +23,7 @@ export function VoiceMode({ profile, onBack }: VoiceModeProps) {
   const startListening = () => {
     // Note: This uses Web Speech API (works in Chrome, Edge, Safari)
     const SpeechRecognition = window.SpeechRecognition || (window as any).webkitSpeechRecognition;
-    
+
     if (!SpeechRecognition) {
       setPipMessage("Sorry, your browser doesn't support voice input. Try Chrome or Edge!");
       setPipEmotion('warning');
@@ -52,41 +53,51 @@ export function VoiceMode({ profile, onBack }: VoiceModeProps) {
       setVoiceState('idle');
     };
 
-    recognition.onend = () => {
+    recognition.onend = async () => {
+      const spokenText = transcript || '';
+      if (!spokenText.trim()) {
+        setVoiceState('idle');
+        setPipMessage(`I didn't catch that! Tap and try again. 👂`);
+        setPipEmotion('thinking');
+        return;
+      }
+
       setVoiceState('processing');
       setPipMessage('Let me think about that... 🤔');
       setPipEmotion('thinking');
 
-      // Simulate processing
-      setTimeout(() => {
-        const responses = [
-          `That's an amazing question! I love your curiosity! 🌟`,
-          `You have such a great voice for discovery! Keep asking questions! 🎙️`,
-          `Wow! Scientists ask lots of questions too. You're thinking like a real explorer! 🔬`,
-          `I'm so impressed by your observations! Keep up the amazing work! 🏆`,
-        ];
-
-        const randomResponse = responses[Math.floor(Math.random() * responses.length)];
-        setPipMessage(randomResponse);
+      try {
+        const data = await chatAPI.send({
+          message: spokenText,
+          child_name: profile.name,
+          child_age: profile.age,
+        });
+        const reply = data.reply;
+        setPipMessage(reply);
         setPipEmotion('happy');
 
-        // Auto-speak the response
-        const utterance = new SpeechSynthesisUtterance(randomResponse);
+        // Speak the real AI reply aloud
+        const utterance = new SpeechSynthesisUtterance(reply);
         utterance.rate = 0.9;
         utterance.pitch = 1.1;
         speechSynthesis.speak(utterance);
+      } catch {
+        const fallback = `Hmm, I had a little trouble there. Try asking again! 🌐`;
+        setPipMessage(fallback);
+        setPipEmotion('thinking');
+        const utterance = new SpeechSynthesisUtterance(fallback);
+        speechSynthesis.speak(utterance);
+      }
 
-        setVoiceState('speaking');
-
-        // Return to idle after speaking
-        setTimeout(() => {
-          setVoiceState('idle');
-          setPipMessage(`Ready to listen again! What's on your mind? 👂`);
-          setPipEmotion('happy');
-          setTranscript('');
-        }, 2000);
-      }, 2000);
+      setVoiceState('speaking');
+      setTimeout(() => {
+        setVoiceState('idle');
+        setPipMessage(`Ready to listen again! What's on your mind? 👂`);
+        setPipEmotion('happy');
+        setTranscript('');
+      }, 3000);
     };
+
 
     recognition.start();
   };

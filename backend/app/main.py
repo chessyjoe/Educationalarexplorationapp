@@ -1,8 +1,9 @@
 from fastapi import FastAPI, HTTPException, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
-from typing import Optional, Any
+from typing import Optional, Any, List
 import logging
+from datetime import datetime, timedelta
 
 # Import config first to load .env file
 from app import config
@@ -211,6 +212,119 @@ async def toggle_favorite(
     await discovery_repo.mark_favorite(discovery_id, favorite)
     
     return {"success": True, "discovery_id": discovery_id, "favorite": favorite}
+
+
+# --------------------------------------------------------------------------- #
+#  CHAT ENDPOINT                                                                #
+# --------------------------------------------------------------------------- #
+
+class ChatInput(BaseModel):
+    message: str
+    child_name: Optional[str] = "Explorer"
+    child_age: Optional[int] = 7
+    discoveries: Optional[List[str]] = []
+
+@app.post("/api/chat")
+async def chat_with_pip(
+    body: ChatInput,
+    token: dict = Depends(optional_auth)
+):
+    """
+    Chat with Pip the AI companion.
+    Returns a friendly, age-appropriate AI-generated response.
+    """
+    from app.utils.gemini_client import get_gemini_client
+
+    try:
+        client = get_gemini_client()
+
+        discovery_context = ""
+        if body.discoveries:
+            discovery_list = ", ".join(body.discoveries[-5:])  # last 5
+            discovery_context = f"\nThe child has previously discovered: {discovery_list}."
+
+        system_instruction = (
+            f"You are Pip, a magical, enthusiastic AI nature companion for a "
+            f"{body.child_age}-year-old child named {body.child_name}. "
+            f"You love helping kids explore nature and learn about the world. "
+            f"Keep replies SHORT (2–3 sentences max), fun, and age-appropriate. "
+            f"Use emojis sparingly but warmly. Never mention that you are an AI."
+            f"{discovery_context}"
+        )
+
+        reply = await client.generate_async(
+            prompt=body.message,
+            system_instruction=system_instruction,
+            temperature=0.9
+        )
+
+        return {"reply": reply}
+
+    except Exception as e:
+        logger.error(f"Chat error: {e}")
+        raise HTTPException(status_code=500, detail="Chat service unavailable")
+
+
+# --------------------------------------------------------------------------- #
+#  USER STATS ENDPOINT                                                          #
+# --------------------------------------------------------------------------- #
+
+@app.get("/api/users/stats")
+async def get_user_stats(token: dict = Depends(optional_auth)):
+    """
+    Returns discovery statistics for the Live Discovery screen:
+      - discoveries_today: count of discoveries made today
+      - new_species: unique species discovered this week
+      - streak_days: consecutive days with at least one discovery
+    """
+    if not token:
+        # Return zeroed stats for unauthenticated users
+        return {"discoveries_today": 0, "new_species": 0, "streak_days": 0}
+
+    try:
+        user_id = get_user_id(token)
+        today = datetime.utcnow().date()
+
+        # Discoveries in last 7 days for streak/species calculation
+        recent = await discovery_repo.get_recent_discoveries(user_id, days=30)
+
+        # Count today's discoveries
+        discoveries_today = sum(
+            1 for d in recent
+            if d.timestamp and d.timestamp.date() == today
+        )
+
+        # Count unique species this week
+        week_ago = today - timedelta(days=7)
+        seen_species = set()
+        for d in recent:
+            if d.timestamp and d.timestamp.date() >= week_ago:
+                name = ""
+                if d.species_info:
+                    name = d.species_info.get("common_name", "")
+                if name:
+                    seen_species.add(name.lower())
+        new_species = len(seen_species)
+
+        # Calculate streak: consecutive days with >= 1 discovery
+        days_with_discoveries = set(
+            d.timestamp.date() for d in recent if d.timestamp
+        )
+        streak = 0
+        check_date = today
+        while check_date in days_with_discoveries:
+            streak += 1
+            check_date -= timedelta(days=1)
+
+        return {
+            "discoveries_today": discoveries_today,
+            "new_species": new_species,
+            "streak_days": streak
+        }
+
+    except Exception as e:
+        logger.error(f"Stats error: {e}")
+        return {"discoveries_today": 0, "new_species": 0, "streak_days": 0}
 
 
 if __name__ == "__main__":

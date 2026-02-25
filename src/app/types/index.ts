@@ -13,6 +13,7 @@ export interface Discovery {
   capturedImage?: string; // Data URL of the actual captured image
   discoveredAt: Date;
   followUpActivity?: string;
+  identification_confidence?: number; // 0.0–1.0 from backend specialist agent
 }
 
 export interface Badge {

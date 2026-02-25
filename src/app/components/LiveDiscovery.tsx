@@ -6,6 +6,7 @@ import { PipMascot } from './PipMascot';
 import type { UserProfile } from '@/app/types';
 import { startCameraStream, stopCameraStream, captureFrame, getCameraPermissionStatus } from '../services/cameraService';
 import { analyzeImage } from '../services/recognitionService';
+import { statsAPI } from '@/services/apiService';
 
 interface LiveDiscoveryProps {
   profile: UserProfile;
@@ -54,10 +55,24 @@ export function LiveDiscovery({ profile, onBack, onDiscovery, onSessionComplete 
   // Initialize camera
   useEffect(() => {
     initializeCamera();
+    fetchStats();
     return () => {
       cleanupCamera();
     };
   }, []);
+
+  const fetchStats = async () => {
+    try {
+      const stats = await statsAPI.get();
+      setStats([
+        { label: 'Discoveries Today', value: stats.discoveries_today, icon: '🔍' },
+        { label: 'New Species', value: stats.new_species, icon: '🆕' },
+        { label: 'Streak', value: stats.streak_days, icon: '🔥' }
+      ]);
+    } catch {
+      // Leave defaults if stats unavailable (unauthenticated user)
+    }
+  };
 
   const initializeCamera = async () => {
     try {
@@ -161,7 +176,7 @@ export function LiveDiscovery({ profile, onBack, onDiscovery, onSessionComplete 
                   id: result.discovery!.id,
                   name: name,
                   timestamp: new Date(),
-                  confidence: 90, // Mock confidence for now
+                  confidence: Math.round((result.discovery!.identification_confidence ?? 0.9) * 100),
                   selected: true,
                   imageUrl: imageDataUrl
                 };

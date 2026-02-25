@@ -5,8 +5,9 @@ Provides a simplified interface to Google's Gemini API using the google-genai pa
 import os
 from google import genai
 from google.genai import types
-from typing import Optional, Dict, Any
+from typing import Optional, Dict, Any, List
 import asyncio
+import base64
 from functools import wraps
 import json
 
@@ -145,6 +146,71 @@ class GeminiClient:
         elif "```" in response_text:
             response_text = response_text.split("```")[1].split("```")[0].strip()
         
+        return json.loads(response_text)
+
+    @async_retry(max_retries=3)
+    async def generate_with_image(
+        self,
+        image_base64: str,
+        prompt: str,
+        schema: Dict[str, Any],
+        system_instruction: Optional[str] = None,
+        temperature: float = 0.7,
+    ) -> Dict[str, Any]:
+        """
+        Generate structured output from an image + text prompt.
+
+        Args:
+            image_base64: Base64-encoded JPEG/PNG string (with or without data: prefix)
+            prompt: The text prompt to send alongside the image
+            schema: JSON schema for the expected output
+            system_instruction: System instruction for the model
+            temperature: Sampling temperature
+
+        Returns:
+            Parsed JSON response dict
+        """
+        self._ensure_initialized()
+
+        # Strip the data:image/...;base64, prefix if present
+        if "," in image_base64:
+            image_base64 = image_base64.split(",", 1)[1]
+
+        # Detect mime type from prefix (default jpeg)
+        mime_type = "image/jpeg"
+
+        schema_prompt = f"{prompt}\n\nRespond ONLY with valid JSON matching this schema:\n{schema}"
+
+        config_params: Dict[str, Any] = {
+            "temperature": temperature,
+            "max_output_tokens": 2048,
+        }
+        if system_instruction:
+            config_params["system_instruction"] = system_instruction
+        config = types.GenerateContentConfig(**config_params)
+
+        image_part = types.Part.from_bytes(
+            data=base64.b64decode(image_base64),
+            mime_type=mime_type,
+        )
+        text_part = types.Part.from_text(text=schema_prompt)
+
+        loop = asyncio.get_event_loop()
+        response = await loop.run_in_executor(
+            None,
+            lambda: self._client.models.generate_content(
+                model=self.model_name,
+                contents=[image_part, text_part],
+                config=config,
+            ),
+        )
+
+        response_text = response.text
+        if "```json" in response_text:
+            response_text = response_text.split("```json")[1].split("```")[0].strip()
+        elif "```" in response_text:
+            response_text = response_text.split("```")[1].split("```")[0].strip()
+
         return json.loads(response_text)
 
 

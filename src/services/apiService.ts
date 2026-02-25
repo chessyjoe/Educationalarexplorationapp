@@ -188,6 +188,37 @@ export const discoveryAPI = {
 };
 
 /**
+ * Chat API — talk to Pip AI companion
+ */
+export const chatAPI = {
+    async send(payload: {
+        message: string;
+        child_name?: string;
+        child_age?: number;
+        discoveries?: string[];
+    }): Promise<{ reply: string }> {
+        const headers = await getAuthHeaders();
+        const response = await fetch(`${API_BASE_URL}/api/chat`, {
+            method: 'POST',
+            headers,
+            body: JSON.stringify(payload),
+        });
+        return handleResponse<{ reply: string }>(response);
+    }
+};
+
+/**
+ * Stats API — user discovery statistics
+ */
+export const statsAPI = {
+    async get(): Promise<{ discoveries_today: number; new_species: number; streak_days: number }> {
+        const headers = await getAuthHeaders();
+        const response = await fetch(`${API_BASE_URL}/api/users/stats`, { headers });
+        return handleResponse<{ discoveries_today: number; new_species: number; streak_days: number }>(response);
+    }
+};
+
+/**
  * Health check
  */
 export async function healthCheck() {
@@ -198,6 +229,8 @@ export async function healthCheck() {
 export default {
     userAPI,
     discoveryAPI,
+    chatAPI,
+    statsAPI,
     healthCheck,
     registerAuthTokenGetter
 };

@@ -5,6 +5,7 @@ import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { PipMascot } from './PipMascot';
 import type { UserProfile, Discovery } from '@/app/types';
+import { chatAPI } from '@/services/apiService';
 
 interface ChatScreenProps {
   profile: UserProfile;
@@ -54,29 +55,34 @@ export function ChatScreen({ profile, onBack, discoveries }: ChatScreenProps) {
     setInputValue('');
     setIsThinking(true);
 
-    // Simulate Pip's response (in real app, would call AI API)
-    setTimeout(() => {
-      const pipResponses = [
-        `That's such an interesting question! I love your curiosity! 🔍`,
-        `Wow, you've discovered ${discoveries.length} amazing things! You're a real explorer! 🏆`,
-        `Did you know that many animals have special adaptations to help them survive? Just like you're adapting to become a junior scientist! 🧪`,
-        `Your collection is growing so beautifully! Keep exploring and discovering new things! 🌱`,
-        `I think that's fascinating! Have you noticed any patterns in the things you've discovered? That's what real scientists do! 🔬`,
-        `You ask the best questions! That's how we learn new things! Keep it up! ⭐`,
-      ];
-
-      const randomResponse = pipResponses[Math.floor(Math.random() * pipResponses.length)];
+    // Call real AI backend
+    try {
+      const discoveryNames = discoveries.map(d => d.name);
+      const data = await chatAPI.send({
+        message: inputValue,
+        child_name: profile.name,
+        child_age: profile.age,
+        discoveries: discoveryNames,
+      });
 
       const pipMessage: ChatMessage = {
         id: (Date.now() + 1).toString(),
         sender: 'pip',
-        content: randomResponse,
+        content: data.reply,
         timestamp: new Date()
       };
-
       setMessages(prev => [...prev, pipMessage]);
+    } catch (err) {
+      const pipMessage: ChatMessage = {
+        id: (Date.now() + 1).toString(),
+        sender: 'pip',
+        content: `Hmm, I'm having a little trouble connecting right now. Try again in a moment! 🌐`,
+        timestamp: new Date()
+      };
+      setMessages(prev => [...prev, pipMessage]);
+    } finally {
       setIsThinking(false);
-    }, 1500);
+    }
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {

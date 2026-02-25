@@ -19,6 +19,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { UserProfileButton } from '@/components/user/UserProfileButton';
 import { loadUserProfile, saveUserProfile, addDiscovery } from './utils/storage';
 import { recognizeImage } from './services/recognitionService';
+import { discoveryAPI } from '@/services/apiService';
 import { usePWAUpdate } from './hooks/usePWAUpdate';
 import type { UserProfile, Discovery } from './types';
 import { toast, Toaster } from 'sonner';
@@ -31,6 +32,7 @@ interface SessionDiscovery {
   timestamp: Date;
   confidence: number;
   selected: boolean;
+  imageUrl?: string;
 }
 
 export default function App() {
@@ -101,13 +103,62 @@ export default function App() {
     setCurrentScreen('live-results');
   };
 
-  const handleLiveResultsConfirm = (selectedDiscoveries: SessionDiscovery[]) => {
-    // For now, just show a toast and go back to camera
-    if (selectedDiscoveries.length > 0) {
-      toast.success(`Saved ${selectedDiscoveries.length} discovery${selectedDiscoveries.length !== 1 ? 'ies' : ''}!`, {
-        description: 'Added to your board!'
-      });
+  const handleLiveResultsConfirm = async (selectedDiscoveries: SessionDiscovery[]) => {
+    if (selectedDiscoveries.length === 0) {
+      setCurrentScreen('camera');
+      setSessionDiscoveries([]);
+      return;
     }
+
+    let updatedProfile = profile;
+    let saved = 0;
+
+    for (const sessionDisc of selectedDiscoveries) {
+      // Build a minimal Discovery object for the board
+      const discovery: Discovery = {
+        id: sessionDisc.id,
+        name: sessionDisc.name,
+        type: 'fauna',
+        category: 'nature',
+        color: 'green',
+        habitat: 'outdoors',
+        isDangerous: false,
+        story: '',
+        funFact: '',
+        imageUrl: sessionDisc.imageUrl || '',
+        capturedImage: sessionDisc.imageUrl,
+        discoveredAt: sessionDisc.timestamp,
+        identification_confidence: sessionDisc.confidence / 100,
+      };
+
+      updatedProfile = addDiscovery(updatedProfile, discovery);
+      saved++;
+    }
+
+    setProfile(updatedProfile);
+
+    // Persist to backend if authenticated
+    if (user) {
+      try {
+        for (const sessionDisc of selectedDiscoveries) {
+          await discoveryAPI.create({
+            child_id: undefined,
+            child_name: profile.name,
+            child_age: profile.age,
+            discovery_description: `Live scan: found a ${sessionDisc.name}`,
+            media_type: 'image',
+            media_data: sessionDisc.imageUrl || '',
+          });
+        }
+      } catch (e) {
+        console.warn('Could not sync live results to backend:', e);
+      }
+    }
+
+    toast.success(
+      `Saved ${saved} discover${saved !== 1 ? 'ies' : 'y'} to your board!`,
+      { description: 'Check your museum to see them.' }
+    );
     setCurrentScreen('camera');
     setSessionDiscoveries([]);
   };
