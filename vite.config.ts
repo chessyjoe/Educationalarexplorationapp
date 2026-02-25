@@ -30,6 +30,9 @@ export default defineConfig({
   server: {
     headers: {
       'Service-Worker-Allowed': '/',
-    }
+    },
+    hmr: {
+      clientPort: 5173,
+    },
   }
 })

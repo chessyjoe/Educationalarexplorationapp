@@ -32,7 +32,7 @@ class ResponseSynthesizer:
             },
             "story": story.get("story"),
             "activity": {
-                "prompt": educator.get("activity"),
+                "prompt": educator.get("prompt"),
                 "question": educator.get("question")
             },
             "metadata": {

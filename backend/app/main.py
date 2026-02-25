@@ -1,4 +1,4 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from typing import Optional, Any
@@ -79,11 +79,14 @@ async def health_check():
 @app.post("/api/discovery")
 async def process_discovery(
     discovery: DiscoveryInput,
+    save: bool = True,
     token: dict = Depends(optional_auth)
 ):
     """
     Endpoint for frontend to send discoveries to the Pip System.
-    Works with or without authentication - saves to Firestore only if authenticated.
+    Works with or without authentication.
+    If save=True (default) and authenticated, saves to Firestore.
+    If save=False, only returns analysis (for live mode).
     """
     try:
         # Convert Pydantic model to dict
@@ -92,8 +95,8 @@ async def process_discovery(
         # Process via Orchestrator
         orchestrator_response = await orchestrator.process_discovery(input_data)
         
-        # If user is authenticated, save to Firestore
-        if token:
+        # If user is authenticated AND save is requested, save to Firestore
+        if token and save:
             try:
                 user_id = get_user_id(token)
                 
@@ -131,7 +134,10 @@ async def process_discovery(
                 orchestrator_response["save_error"] = str(save_error)
         else:
             orchestrator_response["saved"] = False
-            orchestrator_response["info"] = "Sign in to save discoveries"
+            if not token:
+                orchestrator_response["info"] = "Sign in to save discoveries"
+            elif not save:
+                orchestrator_response["info"] = "Live mode - analysis only"
         
         return orchestrator_response
         

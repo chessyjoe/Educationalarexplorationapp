@@ -2,6 +2,7 @@ import { motion } from 'motion/react';
 import { AlertTriangle, Sparkles, Volume2 } from 'lucide-react';
 import { Button } from './ui/button';
 import { PipMascot } from './PipMascot';
+import { ImageWithFallback } from '@/app/components/figma/ImageWithFallback';
 import type { Discovery } from '@/app/types';
 
 interface ResultScreenProps {
@@ -11,6 +12,7 @@ interface ResultScreenProps {
 }
 
 export function ResultScreen({ discovery, onAddToBoard, onTryAgain }: ResultScreenProps) {
+  console.log('ResultScreen rendering with discovery:', discovery);
   const isDangerous = discovery.isDangerous;
 
   const handleSpeak = () => {
@@ -62,7 +64,7 @@ export function ResultScreen({ discovery, onAddToBoard, onTryAgain }: ResultScre
             {/* Captured image area */}
             <div className="mb-6 rounded-[1.5rem] overflow-hidden bg-gray-100">
               {discovery.capturedImage ? (
-                <img
+                <ImageWithFallback
                   src={discovery.capturedImage}
                   alt={discovery.name}
                   className="w-full max-h-96 object-cover"
@@ -173,7 +175,7 @@ export function ResultScreen({ discovery, onAddToBoard, onTryAgain }: ResultScre
 
           {/* Dynamic image area - responsive and larger */}
           <div className="mb-6 rounded-[1.5rem] overflow-hidden bg-gray-100 shadow-[0_4px_12px_rgba(0,0,0,0.1)]">
-            <img
+            <ImageWithFallback
               src={discovery.capturedImage || discovery.imageUrl}
               alt={discovery.name}
               className="w-full max-h-96 object-cover"

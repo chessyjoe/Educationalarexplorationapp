@@ -1,4 +1,5 @@
 import type { Discovery, RecognitionResult } from '@/app/types';
+import { discoveryAPI } from '@/services/apiService';
 
 /**
  * Analyzes a captured image from the camera for object recognition
@@ -19,52 +20,18 @@ export async function recognizeImage(imageDataUrl: string): Promise<RecognitionR
   }
 
   try {
-    // Call Pip System Backend
-    const response = await fetch('http://localhost:8000/api/discovery', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        child_id: "demo_child_123", // Fixed ID for prototype
-        media_type: "image",
-        media_data: imageDataUrl, // Full data URL
-        discovery_description: "I found this!", // Default description
-        timestamp: new Date().toISOString()
-      })
+    // Call Pip System Backend via API Service (authenticated)
+    // save=true is default
+    const data = await discoveryAPI.create({
+      child_id: "demo_child_123", // TODO: Get from context if needed
+      media_type: "image",
+      media_data: imageDataUrl,
+      discovery_description: "I found this!",
+      timestamp: new Date().toISOString()
     });
 
-    if (!response.ok) {
-      console.error("Backend response not OK:", response.status, response.statusText);
-      throw new Error(`Backend Error: ${response.statusText}`);
-    }
-
-    const data = await response.json();
     console.log("Backend Data Received:", data);
-
-    // Transform backend response to Discovery object
-    const discovery: Discovery = {
-      id: `discovery-${Date.now()}`,
-      name: data.identification?.name || "Mystery Object",
-      scientificName: data.identification?.scientific_name,
-      category: data.identification?.name ? "nature" : "unknown",
-      type: "flora", // Fixed: Matches 'flora' | 'fauna' type definition
-      color: "green",
-      habitat: "garden",
-      isDangerous: data.safety_status === "danger" || data.safety_status === "caution",
-      story: data.story?.story || data.story || "No story available.", // Handle nested story object if necessary
-      funFact: data.identification?.facts ? data.identification.facts[0] : "It's amazing!",
-      imageUrl: imageDataUrl,
-      discoveredAt: new Date(),
-      // Add extra fields if Discovery type supports them, otherwise they are ignored
-    };
-
-    console.log("Mapped Discovery Object:", discovery);
-
-    return {
-      success: true,
-      discovery
-    };
+    return mapBackendResponseToResult(data, imageDataUrl);
 
   } catch (error) {
     console.error('Error recognizing image:', error);
@@ -73,6 +40,53 @@ export async function recognizeImage(imageDataUrl: string): Promise<RecognitionR
       error: error instanceof Error ? error.message : 'Unknown error occurred'
     };
   }
+}
+
+/**
+ * Analyzes an image without saving it to history (for Live Mode)
+ */
+export async function analyzeImage(imageDataUrl: string): Promise<RecognitionResult> {
+  if (!imageDataUrl) return { success: false, error: 'No image' };
+
+  try {
+    // Call with save=false
+    const data = await discoveryAPI.create({
+      media_type: "image",
+      media_data: imageDataUrl,
+      timestamp: new Date().toISOString()
+    }, false);
+
+    return mapBackendResponseToResult(data, imageDataUrl);
+  } catch (error) {
+    console.error('Error analyzing image:', error);
+    return { success: false, error: 'Analysis failed' };
+  }
+}
+
+function mapBackendResponseToResult(data: any, imageDataUrl: string): RecognitionResult {
+  // Transform backend response to Discovery object
+  const discovery: Discovery = {
+    id: data.discovery_id || `temp-${Date.now()}`,
+    name: data.identification?.name || "Mystery Object",
+    scientificName: data.identification?.scientific_name,
+    category: data.identification?.name ? "nature" : "unknown",
+    type: "flora", // Matches 'flora' | 'fauna' type definition
+    color: "green",
+    habitat: "garden",
+    isDangerous: data.safety_status === "danger" || data.safety_status === "caution",
+    story: typeof data.story === 'string' ? data.story : (data.story?.story || "No story available."),
+    funFact: Array.isArray(data.identification?.facts) && data.identification.facts.length > 0
+      ? data.identification.facts[0]
+      : "It's amazing!",
+    imageUrl: imageDataUrl,
+    discoveredAt: new Date(),
+    followUpActivity: data.activity?.prompt
+  };
+
+  return {
+    success: true,
+    discovery
+  };
 }
 
 /**

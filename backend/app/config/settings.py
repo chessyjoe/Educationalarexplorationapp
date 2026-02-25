@@ -7,7 +7,11 @@ from pathlib import Path
 from dotenv import load_dotenv
 
 # Get the backend directory (parent of app directory)
-backend_dir = Path(__file__).resolve().parent.parent
+# __file__ = backend/app/config/settings.py
+# .parent = backend/app/config
+# .parent.parent = backend/app
+# .parent.parent.parent = backend
+backend_dir = Path(__file__).resolve().parent.parent.parent
 env_path = backend_dir / ".env"
 
 # Load .env file from backend directory

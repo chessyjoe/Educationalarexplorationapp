@@ -120,9 +120,9 @@ export const discoveryAPI = {
         media_data: string;
         timestamp?: string;
         location?: { lat: number; lng: number };
-    }) {
+    }, save: boolean = true) {
         const headers = await getAuthHeaders();
-        const response = await fetch(`${API_BASE_URL}/api/discovery`, {
+        const response = await fetch(`${API_BASE_URL}/api/discovery?save=${save}`, {
             method: 'POST',
             headers,
             body: JSON.stringify(discoveryData)

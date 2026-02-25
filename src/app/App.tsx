@@ -14,6 +14,7 @@ import { APISetupGuide } from './components/APISetupGuide';
 import { PWAInstallPrompt } from './components/PWAInstallPrompt';
 import { AuthModal } from '@/components/auth/AuthModal';
 import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
+import { ErrorBoundary } from './components/ErrorBoundary';
 import { useAuth } from '@/contexts/AuthContext';
 import { UserProfileButton } from '@/components/user/UserProfileButton';
 import { loadUserProfile, saveUserProfile, addDiscovery } from './utils/storage';
@@ -50,7 +51,7 @@ export default function App() {
   const [currentDiscovery, setCurrentDiscovery] = useState<Discovery | null>(null);
   const [selectedDiscovery, setSelectedDiscovery] = useState<Discovery | null>(null);
   const [sessionDiscoveries, setSessionDiscoveries] = useState<SessionDiscovery[]>([]);
-  const [capturedImageData, setCapturedImageData] = useState<string | null>(null);
+
 
   // Save profile whenever it changes
   useEffect(() => {
@@ -113,7 +114,6 @@ export default function App() {
 
   const handleCapture = async (imageDataUrl: string) => {
     setIsProcessing(true);
-    setCapturedImageData(imageDataUrl);
 
     try {
       const result = await recognizeImage(imageDataUrl);
@@ -251,11 +251,13 @@ export default function App() {
       )}
 
       {currentScreen === 'result' && currentDiscovery && (
-        <ResultScreen
-          discovery={currentDiscovery}
-          onAddToBoard={handleAddToBoard}
-          onTryAgain={handleTryAgain}
-        />
+        <ErrorBoundary>
+          <ResultScreen
+            discovery={currentDiscovery}
+            onAddToBoard={handleAddToBoard}
+            onTryAgain={handleTryAgain}
+          />
+        </ErrorBoundary>
       )}
 
       {currentScreen === 'board' && (

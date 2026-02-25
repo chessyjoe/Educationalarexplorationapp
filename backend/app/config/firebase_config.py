@@ -34,7 +34,12 @@ class FirebaseConfig:
             return
         
         # Get path to service account credentials
-        backend_dir = Path(__file__).parent.parent
+        # Get path to service account credentials
+        # __file__ is backend/app/config/firebase_config.py
+        # .parent is backend/app/config
+        # .parent.parent is backend/app
+        # .parent.parent.parent is backend
+        backend_dir = Path(__file__).resolve().parent.parent.parent
         cred_path = backend_dir / 'firebase-service-account.json'
         
         if not cred_path.exists():
