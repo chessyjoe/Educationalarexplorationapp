@@ -11,10 +11,10 @@ class ResponseSynthesizer:
         
         # Check Safety First
         safety = agent_results.get("SafetyAgent", {})
-        if not safety.get("is_safe", True):
+        if safety.get("is_dangerous", False):
             return {
                 "type": "safety_warning",
-                "content": safety.get("warning", "Be careful! That looks dangerous.")
+                "content": safety.get("warning_message", "Be careful! That looks dangerous.")
             }
 
         specialist = agent_results.get("Specialist", {})

@@ -54,7 +54,7 @@ export async function startCameraStream(
     });
 
     videoElement.srcObject = stream;
-    
+
     return new Promise((resolve, reject) => {
       videoElement.onloadedmetadata = () => {
         videoElement.play().then(() => resolve(stream)).catch(reject);
@@ -73,13 +73,13 @@ export async function stopCameraStream(stream: MediaStream): Promise<void> {
 
 export function captureFrame(
   videoElement: HTMLVideoElement,
-  width: number = 640,
-  height: number = 480
+  width: number = 1280,
+  height: number = 960
 ): string {
   const canvas = document.createElement('canvas');
   canvas.width = width;
   canvas.height = height;
-  
+
   const context = canvas.getContext('2d');
   if (!context) {
     throw new Error('Could not get canvas context');
@@ -102,7 +102,7 @@ export async function toggleFlashlight(enable: boolean): Promise<boolean> {
     const stream = (await navigator.mediaDevices.enumerateDevices()).find(
       device => device.kind === 'videoinput'
     );
-    
+
     if (!stream) return false;
 
     // Note: Flash control requires specific browser support

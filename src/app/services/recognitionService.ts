@@ -108,9 +108,9 @@ export function validateCapturedImage(imageDataUrl: string): { valid: boolean; e
     return { valid: false, error: 'Invalid image format' };
   }
 
-  // Check rough minimum size (at least 50KB of data)
-  if (imageDataUrl.length < 50000) {
-    return { valid: false, error: 'Image is too small or blurry' };
+  // Check rough minimum size (at least 10KB of data — 640x480 JPEG produces ~30-45k chars)
+  if (imageDataUrl.length < 10000) {
+    return { valid: false, error: 'Image capture failed - please try again' };
   }
 
   return { valid: true };

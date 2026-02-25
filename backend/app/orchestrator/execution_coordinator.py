@@ -30,7 +30,7 @@ class ExecutionCoordinator:
             safety_result = await self.safety_agent.evaluate_safety(discovery_input)
             results["SafetyAgent"] = safety_result
             
-            if not safety_result.get("is_safe", True):
+            if safety_result.get("is_dangerous", False):
                 # If unsafe, short-circuit and return immediately
                 return results
 
