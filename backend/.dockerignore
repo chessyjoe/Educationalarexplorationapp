@@ -1,0 +1,22 @@
+# Exclude secrets and dev artifacts from Docker image
+.env
+.venv
+venv/
+env/
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache/
+.coverage
+htmlcov/
+
+# IDE
+.vscode/
+.idea/
+
+# Docs / misc
+*.md
+tests/

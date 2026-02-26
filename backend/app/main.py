@@ -31,9 +31,17 @@ async def startup_event():
         # Continue running - Firebase will initialize on first use
 
 # CORS configuration
+ALLOWED_ORIGINS = [
+    "https://edu-explorer-9827f.web.app",
+    "https://edu-explorer-9827f.firebaseapp.com",
+    # Keep localhost for local dev:
+    "http://localhost:5173",
+    "http://localhost:3000",
+]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Adjust for production
+    allow_origins=ALLOWED_ORIGINS,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

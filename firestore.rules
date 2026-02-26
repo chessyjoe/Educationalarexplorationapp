@@ -1,0 +1,57 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ------------------------------------------------------------------ //
+    // Helper: is the caller authenticated?
+    // ------------------------------------------------------------------ //
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    // ------------------------------------------------------------------ //
+    // Helper: does the caller own this resource?
+    // ------------------------------------------------------------------ //
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    // ------------------------------------------------------------------ //
+    // Users collection
+    // Each user can only read/write their own profile document.
+    // ------------------------------------------------------------------ //
+    match /users/{userId} {
+      allow read, write: if isOwner(userId);
+    }
+
+    // ------------------------------------------------------------------ //
+    // Discoveries collection
+    // Each document must carry a `userId` field that matches the caller.
+    // ------------------------------------------------------------------ //
+    match /discoveries/{discoveryId} {
+      // Read: only the owner
+      allow read: if isSignedIn()
+                  && resource.data.userId == request.auth.uid;
+
+      // Create: only if the caller sets their own userId on the document
+      allow create: if isSignedIn()
+                    && request.resource.data.userId == request.auth.uid;
+
+      // Update/Delete: only the owner, and they cannot change userId
+      allow update: if isSignedIn()
+                    && resource.data.userId == request.auth.uid
+                    && request.resource.data.userId == request.auth.uid;
+
+      allow delete: if isSignedIn()
+                    && resource.data.userId == request.auth.uid;
+    }
+
+    // ------------------------------------------------------------------ //
+    // Deny everything else by default
+    // ------------------------------------------------------------------ //
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

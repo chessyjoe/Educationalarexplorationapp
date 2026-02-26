@@ -24,45 +24,56 @@ class FirebaseConfig:
     def initialize(cls) -> None:
         """
         Initialize Firebase Admin SDK.
-        Loads credentials from firebase-service-account.json file.
-        
+
+        Credential resolution order:
+          1. FIREBASE_SERVICE_ACCOUNT_JSON env var (JSON string) — used on Fly.io
+          2. firebase-service-account.json file in backend/ directory — used locally
+
         Raises:
-            FileNotFoundError: If service account JSON file is not found
+            FileNotFoundError: If neither credential source is found
         """
         if cls._initialized:
             logger.debug("Firebase already initialized")
             return
-        
-        # Get path to service account credentials
-        # Get path to service account credentials
-        # __file__ is backend/app/config/firebase_config.py
-        # .parent is backend/app/config
-        # .parent.parent is backend/app
-        # .parent.parent.parent is backend
-        backend_dir = Path(__file__).resolve().parent.parent.parent
-        cred_path = backend_dir / 'firebase-service-account.json'
-        
-        if not cred_path.exists():
+
+        import os, json
+
+        cred = None
+
+        # --- Option 1: JSON string in env var (Fly.io / any 12-factor platform) ---
+        sa_json = os.environ.get("FIREBASE_SERVICE_ACCOUNT_JSON")
+        if sa_json:
+            try:
+                sa_dict = json.loads(sa_json)
+                cred = credentials.Certificate(sa_dict)
+                logger.info("Firebase credentials loaded from FIREBASE_SERVICE_ACCOUNT_JSON env var")
+            except Exception as e:
+                logger.warning(f"Could not parse FIREBASE_SERVICE_ACCOUNT_JSON: {e}")
+
+        # --- Option 2: JSON file on disk (local development) ---
+        if cred is None:
+            backend_dir = Path(__file__).resolve().parent.parent.parent
+            cred_path = backend_dir / 'firebase-service-account.json'
+            if cred_path.exists():
+                cred = credentials.Certificate(str(cred_path))
+                logger.info(f"Firebase credentials loaded from file: {cred_path}")
+
+        if cred is None:
             raise FileNotFoundError(
-                f"Firebase credentials not found at {cred_path}\n"
-                "Download from Firebase Console → Project Settings → Service Accounts\n"
-                "Make sure the file is named 'firebase-service-account.json' and placed in backend/ directory"
+                "Firebase credentials not found.\n"
+                "  • Local dev: place firebase-service-account.json in backend/\n"
+                "  • Fly.io: set the FIREBASE_SERVICE_ACCOUNT_JSON secret"
             )
-        
+
         try:
-            # Initialize Firebase Admin with service account
-            cred = credentials.Certificate(str(cred_path))
             cls._app = firebase_admin.initialize_app(cred)
-            
-            # Initialize Firestore client
             cls._firestore_client = firestore.client()
-            
             cls._initialized = True
             logger.info("Firebase Admin SDK initialized successfully")
-            
         except Exception as e:
             logger.error(f"Failed to initialize Firebase: {str(e)}")
             raise
+
     
     @classmethod
     def get_firestore(cls) -> firestore.Client:

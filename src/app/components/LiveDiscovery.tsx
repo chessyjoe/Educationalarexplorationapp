@@ -33,7 +33,7 @@ interface SessionDiscovery {
 const MAX_SESSION_DURATION = 5 * 60; // 5 minutes in seconds
 const ANALYSIS_INTERVAL = 3000; // Analyze every 3 seconds
 
-export function LiveDiscovery({ profile, onBack, onDiscovery, onSessionComplete }: LiveDiscoveryProps) {
+export function LiveDiscovery({ profile: _profile, onBack, onDiscovery: _onDiscovery, onSessionComplete }: LiveDiscoveryProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const [cameraStream, setCameraStream] = useState<MediaStream | null>(null);
   const [isRunning, setIsRunning] = useState(false);

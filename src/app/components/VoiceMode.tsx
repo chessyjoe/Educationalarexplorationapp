@@ -22,7 +22,7 @@ export function VoiceMode({ profile, onBack }: VoiceModeProps) {
 
   const startListening = () => {
     // Note: This uses Web Speech API (works in Chrome, Edge, Safari)
-    const SpeechRecognition = window.SpeechRecognition || (window as any).webkitSpeechRecognition;
+    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
 
     if (!SpeechRecognition) {
       setPipMessage("Sorry, your browser doesn't support voice input. Try Chrome or Edge!");
@@ -47,7 +47,7 @@ export function VoiceMode({ profile, onBack }: VoiceModeProps) {
       setTranscript(transcript);
     };
 
-    recognition.onerror = (event: any) => {
+    recognition.onerror = (_event: any) => {
       setPipMessage(`Oops! I couldn't hear that. Try again! 🔊`);
       setPipEmotion('thinking');
       setVoiceState('idle');
