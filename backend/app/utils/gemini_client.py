@@ -35,13 +35,13 @@ class GeminiClient:
     Uses the new google-genai package with proper configuration.
     """
     
-    def __init__(self, api_key: Optional[str] = None, model_name: str = "models/gemini-2.5-flash"):
+    def __init__(self, api_key: Optional[str] = None, model_name: str = "gemini-2.0-flash"):
         """
         Initialize Gemini client.
         
         Args:
             api_key: Google API key (defaults to GEMINI_API_KEY env var)
-            model_name: Model to use (default: models/gemini-2.5-flash)
+            model_name: Model to use (default: gemini-2.0-flash)
         """
         self.api_key = api_key or os.getenv("GEMINI_API_KEY")
         self.model_name = model_name

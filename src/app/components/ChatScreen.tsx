@@ -123,6 +123,12 @@ export function ChatScreen({ profile, onBack, discoveries }: ChatScreenProps) {
                   <div className="flex-shrink-0">
                     <PipMascot message={message.content} emotion="happy" size="small" />
                   </div>
+                  <div className="bg-white rounded-[1.5rem] px-5 py-3 shadow-md">
+                    <p className="text-base leading-relaxed text-gray-800">{message.content}</p>
+                    <p className="text-xs text-gray-400 mt-1">
+                      {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                    </p>
+                  </div>
                 </div>
               )}
 
