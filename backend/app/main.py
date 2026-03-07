@@ -140,8 +140,8 @@ async def process_discovery(
         if discovery.image_url:
             # Prevent SSRF: Ensure URL belongs to Firebase Storage
             allowed_prefixes = [
-                "https://firebasestorage.googleapis.com/v0/b/edu-explorer-9827f.appspot.com/",
-                "https://firebasestorage.googleapis.com/v0/b/edu-explorer-9827f.firebasestorage.app/"
+                "https://firebasestorage.googleapis.com/v0/b/edu-explorer-9827f.appspot.com/o/",
+                "https://firebasestorage.googleapis.com/v0/b/edu-explorer-9827f.firebasestorage.app/o/"
             ]
             if not any(discovery.image_url.startswith(prefix) for prefix in allowed_prefixes):
                 logger.error(f"SSRF attempt or invalid image URL domain: {discovery.image_url}")

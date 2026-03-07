@@ -34,7 +34,7 @@ Guidelines:
 - Be enthusiastic and encouraging"""
 
         prompt = f"""A child has discovered this {self.domain.lower()}.
-{f'They described it as: {description}' if description and description != 'I found this!' else ''}
+{f'They described it as: \"\"\"{description}\"\"\"' if description and description != 'I found this!' else ''}
 
 Identify it and share interesting facts. Respond as JSON:
 {{

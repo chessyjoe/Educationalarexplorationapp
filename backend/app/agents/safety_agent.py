@@ -46,7 +46,7 @@ Always err on the side of caution when uncertain."""
         # Build prompt
         prompt = f"""Evaluate the safety of this discovery for a child:
 
-Discovery: {description}
+Discovery: \"\"\"{description}\"\"\"
 
 Provide your assessment as JSON:
 {{
