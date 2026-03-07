@@ -3,7 +3,17 @@
  * Handles all API requests to the backend with authentication support.
  */
 
-const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000').replace(/\/$/, '');
+let baseUrl = import.meta.env.VITE_API_BASE_URL;
+
+if (!baseUrl) {
+    if (import.meta.env.PROD) {
+        throw new Error("VITE_API_BASE_URL is missing in production environment");
+    } else {
+        baseUrl = 'http://localhost:8000';
+    }
+}
+
+const API_BASE_URL = baseUrl.replace(/\/$/, '');
 
 // Auth token management
 let authTokenGetter: (() => Promise<string | null>) | null = null;

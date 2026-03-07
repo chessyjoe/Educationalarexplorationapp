@@ -23,6 +23,7 @@ logger = logging.getLogger(__name__)
 
 import sentry_sdk
 from app.config.settings import SENTRY_DSN
+from contextlib import asynccontextmanager
 
 if SENTRY_DSN:
     sentry_sdk.init(
@@ -31,7 +32,18 @@ if SENTRY_DSN:
         profiles_sample_rate=1.0,
     )
 
-app = FastAPI(title="Pip System API", version="0.2.0")
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """Initialize Firebase Admin SDK on application startup."""
+    try:
+        FirebaseConfig.initialize()
+        logger.info("Firebase Admin SDK initialized successfully")
+    except Exception as e:
+        logger.error(f"Failed to initialize Firebase: {str(e)}")
+        raise RuntimeError(f"Failed to initialize Firebase on startup.") from e
+    yield
+
+app = FastAPI(title="Pip System API", version="0.2.0", lifespan=lifespan)
 
 @app.exception_handler(Exception)
 async def global_exception_handler(request: Request, exc: Exception):
@@ -40,18 +52,6 @@ async def global_exception_handler(request: Request, exc: Exception):
         status_code=500,
         content={"detail": "An internal server error occurred. Please try again later."}
     )
-
-
-# Initialize Firebase on startup
-@app.on_event("startup")
-async def startup_event():
-    """Initialize Firebase Admin SDK on application startup."""
-    try:
-        FirebaseConfig.initialize()
-        logger.info("Firebase Admin SDK initialized successfully")
-    except Exception as e:
-        logger.error(f"Failed to initialize Firebase: {str(e)}")
-        # Continue running - Firebase will initialize on first use
 
 from app.config.settings import ENV
 

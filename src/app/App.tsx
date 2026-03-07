@@ -164,6 +164,7 @@ export default function App() {
         }
       } catch (error) {
         console.warn('Analysis failed for', sessionDisc.name, error);
+        toast.error(`Failed to analyze: ${sessionDisc.name}`);
       }
     }
 
