@@ -4,6 +4,7 @@ import * as Sentry from "@sentry/react";
 import App from "./app/App.tsx";
 import { AuthProvider, useAuth } from "./contexts/AuthContext.tsx";
 import { registerAuthTokenGetter } from "./services/apiService.ts";
+import { ErrorBoundary } from "./app/components/ErrorBoundary";
 import "./styles/index.css";
 
 Sentry.init({
@@ -33,8 +34,10 @@ function AppWithAuth() {
 
 createRoot(document.getElementById("root")!).render(
     <StrictMode>
-        <AuthProvider>
-            <AppWithAuth />
-        </AuthProvider>
+        <ErrorBoundary>
+            <AuthProvider>
+                <AppWithAuth />
+            </AuthProvider>
+        </ErrorBoundary>
     </StrictMode>
 );
