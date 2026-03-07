@@ -2,7 +2,6 @@ import type { UserProfile, Discovery, Badge } from '@/app/types';
 
 const STORAGE_KEY = 'pocket_science_user';
 const ONBOARDING_KEY = 'pocket_science_onboarding_complete';
-const PARENT_PIN = '1234'; // Default PIN for demo
 
 /** Returns a user-scoped localStorage key for authenticated users. */
 export function getUserStorageKey(uid: string): string {
@@ -176,9 +175,6 @@ function updateBadges(badges: Badge[], discoveries: Discovery[]): Badge[] {
   return newBadges;
 }
 
-export function verifyParentPIN(pin: string): boolean {
-  return pin === PARENT_PIN;
-}
 
 export function clearAllData(uid?: string): void {
   if (uid) {

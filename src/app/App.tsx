@@ -13,13 +13,13 @@ import { LiveDiscoveryResults } from './components/LiveDiscoveryResults';
 import { APISetupGuide } from './components/APISetupGuide';
 import { PWAInstallPrompt } from './components/PWAInstallPrompt';
 import { AuthModal } from '@/components/auth/AuthModal';
+import { ParentalGate } from '@/components/auth/ParentalGate';
 import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { useAuth } from '@/contexts/AuthContext';
 import { UserProfileButton } from '@/components/user/UserProfileButton';
 import { loadUserProfile, saveUserProfile, addDiscovery, getDefaultProfile, getOnboardingKey, clearUserData } from './utils/storage';
 import { recognizeImage } from './services/recognitionService';
-import { discoveryAPI } from '@/services/apiService';
 import { usePWAUpdate } from './hooks/usePWAUpdate';
 import type { UserProfile, Discovery } from './types';
 import { toast, Toaster } from 'sonner';
@@ -42,6 +42,7 @@ export default function App() {
   // Auth state
   const { user } = useAuth();
   const [showAuthModal, setShowAuthModal] = useState(false);
+  const [showParentalGate, setShowParentalGate] = useState(false);
 
   const [currentScreen, setCurrentScreen] = useState<Screen>('onboarding');
   const [profile, setProfile] = useState<UserProfile>(() => getDefaultProfile());
@@ -98,7 +99,7 @@ export default function App() {
       toast.info('Please sign in to access Parental Dashboard');
       return;
     }
-    setCurrentScreen('parent');
+    setShowParentalGate(true);
   };
 
   const handleOpenChat = () => {
@@ -133,50 +134,42 @@ export default function App() {
       return;
     }
 
+    // Set processing state so the UI knows we're working
+    setIsProcessing(true);
+    toast.loading('Analyzing discoveries...', { id: 'live-analysis' });
+
     let updatedProfile = profile;
     let saved = 0;
 
     for (const sessionDisc of selectedDiscoveries) {
-      // Build a minimal Discovery object for the board
-      const discovery: Discovery = {
-        id: sessionDisc.id,
-        name: sessionDisc.name,
-        type: 'fauna',
-        category: 'nature',
-        color: 'green',
-        habitat: 'outdoors',
-        isDangerous: false,
-        story: '',
-        funFact: '',
-        imageUrl: sessionDisc.imageUrl || '',
-        capturedImage: sessionDisc.imageUrl,
-        discoveredAt: sessionDisc.timestamp,
-        identification_confidence: sessionDisc.confidence / 100,
-      };
+      if (!sessionDisc.imageUrl) continue;
 
-      updatedProfile = addDiscovery(updatedProfile, discovery);
-      saved++;
+      try {
+        // recognizeImage already handles AI processing AND saving to backend if user logic allows
+        const result = await recognizeImage(
+          sessionDisc.imageUrl,
+          user?.uid,
+          profile.name,
+          profile.age
+        );
+
+        if (result.success && result.discovery) {
+          const discoveryWithImage = {
+            ...result.discovery,
+            id: result.discovery.id || sessionDisc.id,
+            capturedImage: sessionDisc.imageUrl
+          };
+          updatedProfile = addDiscovery(updatedProfile, discoveryWithImage);
+          saved++;
+        }
+      } catch (error) {
+        console.warn('Analysis failed for', sessionDisc.name, error);
+      }
     }
 
     setProfile(updatedProfile);
-
-    // Persist to backend if authenticated
-    if (user) {
-      try {
-        for (const sessionDisc of selectedDiscoveries) {
-          await discoveryAPI.create({
-            child_id: undefined,
-            child_name: profile.name,
-            child_age: profile.age,
-            discovery_description: `Live scan: found a ${sessionDisc.name}`,
-            media_type: 'image',
-            media_data: sessionDisc.imageUrl || '',
-          });
-        }
-      } catch (e) {
-        console.warn('Could not sync live results to backend:', e);
-      }
-    }
+    setIsProcessing(false);
+    toast.dismiss('live-analysis');
 
     toast.success(
       `Saved ${saved} discover${saved !== 1 ? 'ies' : 'y'} to your board!`,
@@ -190,7 +183,7 @@ export default function App() {
     setIsProcessing(true);
 
     try {
-      const result = await recognizeImage(imageDataUrl);
+      const result = await recognizeImage(imageDataUrl, user?.uid, profile.name, profile.age);
 
       if (result.success && result.discovery) {
         // Attach captured image to discovery
@@ -412,6 +405,16 @@ export default function App() {
       <AuthModal
         isOpen={showAuthModal}
         onClose={() => setShowAuthModal(false)}
+      />
+
+      {/* Parental Gate */}
+      <ParentalGate
+        isOpen={showParentalGate}
+        onClose={() => setShowParentalGate(false)}
+        onSuccess={() => {
+          setShowParentalGate(false);
+          setCurrentScreen('parent');
+        }}
       />
 
       {/* User Profile Button - Fixed position in top-right */}

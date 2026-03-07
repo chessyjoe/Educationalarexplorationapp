@@ -58,6 +58,8 @@ from app.models.discovery_record import DiscoveryRecord
 from app.auth.firebase_auth import verify_firebase_token, optional_auth, get_user_id
 import uuid
 from datetime import datetime
+import base64
+from firebase_admin import storage
 
 # Register routers
 app.include_router(user_router)
@@ -114,12 +116,30 @@ async def process_discovery(
                 
                 # Create discovery record
                 discovery_id = f"disc_{uuid.uuid4().hex}"
+                
+                image_url = None
+                if discovery.media_type == "image" and discovery.media_data:
+                    try:
+                        # Extract base64 data (handle data:image/jpeg;base64,... prefix)
+                        header, encoded = discovery.media_data.split(",", 1) if "," in discovery.media_data else ("", discovery.media_data)
+                        image_bytes = base64.b64decode(encoded)
+                        
+                        # Upload to Firebase Storage
+                        bucket = storage.bucket()
+                        blob = bucket.blob(f"discoveries/{user_id}/{discovery_id}.jpg")
+                        blob.upload_from_string(image_bytes, content_type="image/jpeg")
+                        blob.make_public()
+                        image_url = blob.public_url
+                        logger.info(f"Successfully uploaded image for discovery {discovery_id}")
+                    except Exception as upload_error:
+                        logger.error(f"Failed to upload image to Firebase Storage: {upload_error}")
+
                 discovery_record = DiscoveryRecord(
                     discovery_id=discovery_id,
                     user_id=user_id,
                     child_id=discovery.child_id,
                     timestamp=datetime.utcnow(),
-                    image_url=None,  # TODO: Upload to Firebase Storage
+                    image_url=image_url,
                     location=discovery.location,
                     subject_type=orchestrator_response.get("subject_type", "unknown"),
                     species_info=orchestrator_response.get("species_info", {}),

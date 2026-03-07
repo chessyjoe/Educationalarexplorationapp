@@ -11,7 +11,12 @@ import { discoveryAPI } from '@/services/apiService';
  * - TensorFlow.js with a trained model
  * - Custom ML backend
  */
-export async function recognizeImage(imageDataUrl: string): Promise<RecognitionResult> {
+export async function recognizeImage(
+  imageDataUrl: string,
+  childId?: string,
+  childName?: string,
+  childAge?: number
+): Promise<RecognitionResult> {
   if (!imageDataUrl) {
     return {
       success: false,
@@ -23,7 +28,9 @@ export async function recognizeImage(imageDataUrl: string): Promise<RecognitionR
     // Call Pip System Backend via API Service (authenticated)
     // save=true is default
     const data = await discoveryAPI.create({
-      child_id: "demo_child_123", // TODO: Get from context if needed
+      child_id: childId,
+      child_name: childName,
+      child_age: childAge,
       media_type: "image",
       media_data: imageDataUrl,
       discovery_description: "I found this!",
@@ -92,8 +99,13 @@ function mapBackendResponseToResult(data: any, imageDataUrl: string): Recognitio
 /**
  * Processes multiple images in sequence (for live discovery mode)
  */
-export async function recognizeImageBatch(imageDataUrls: string[]): Promise<RecognitionResult[]> {
-  return Promise.all(imageDataUrls.map(url => recognizeImage(url)));
+export async function recognizeImageBatch(
+  imageDataUrls: string[],
+  childId?: string,
+  childName?: string,
+  childAge?: number
+): Promise<RecognitionResult[]> {
+  return Promise.all(imageDataUrls.map(url => recognizeImage(url, childId, childName, childAge)));
 }
 
 /**

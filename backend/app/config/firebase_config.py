@@ -66,7 +66,10 @@ class FirebaseConfig:
             )
 
         try:
-            cls._app = firebase_admin.initialize_app(cred)
+            storage_bucket = os.environ.get("FIREBASE_STORAGE_BUCKET", "edu-explorer-9827f.appspot.com")
+            cls._app = firebase_admin.initialize_app(cred, {
+                'storageBucket': storage_bucket
+            })
             cls._firestore_client = firestore.client()
             cls._initialized = True
             logger.info("Firebase Admin SDK initialized successfully")

@@ -31,7 +31,6 @@ interface SessionDiscovery {
 }
 
 const MAX_SESSION_DURATION = 5 * 60; // 5 minutes in seconds
-const ANALYSIS_INTERVAL = 3000; // Analyze every 3 seconds
 
 export function LiveDiscovery({ profile: _profile, onBack, onDiscovery: _onDiscovery, onSessionComplete }: LiveDiscoveryProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -140,63 +139,48 @@ export function LiveDiscovery({ profile: _profile, onBack, onDiscovery: _onDisco
     return () => clearInterval(interval);
   }, [isRunning]);
 
-  // Analysis Loop
-  useEffect(() => {
-    let analysisTimer: NodeJS.Timeout;
+  const captureImage = async () => {
+    if (isAnalyzing || !videoRef.current || !isRunning) return;
 
-    if (isRunning && videoRef.current) {
-      analysisTimer = setInterval(async () => {
-        if (isAnalyzing || !videoRef.current) return;
+    try {
+      setIsAnalyzing(true);
+      const imageDataUrl = captureFrame(videoRef.current);
 
-        try {
-          setIsAnalyzing(true);
-          const imageDataUrl = captureFrame(videoRef.current);
+      // Analyze frame
+      const result = await analyzeImage(imageDataUrl);
 
-          // Analyze frame
-          const result = await analyzeImage(imageDataUrl);
+      if (result.success && result.discovery) {
+        const name = result.discovery.name;
 
-          if (result.success && result.discovery) {
-            const name = result.discovery.name;
+        // Only add if not "unknown" or "mystery"
+        if (name.toLowerCase() !== 'mystery object' && name.toLowerCase() !== 'unknown') {
+          setPipMessage(`I see a ${name}!`);
+          setPipEmotion('excited');
 
-            // Only add if not "unknown" or "mystery"
-            if (name.toLowerCase() !== 'mystery object' && name.toLowerCase() !== 'unknown') {
-              setPipMessage(`I see a ${name}!`);
-              setPipEmotion('excited');
-
-              // Add to session discoveries
-              setDiscoveredCount(prev => prev + 1);
-              setSessionDiscoveries(prev => {
-                // Avoid duplicates in rapid succession
-                const last = prev[prev.length - 1];
-                if (last && last.name === name && (Date.now() - last.timestamp.getTime()) < 5000) {
-                  return prev;
-                }
-
-                const newDiscovery: SessionDiscovery = {
-                  id: result.discovery!.id,
-                  name: name,
-                  timestamp: new Date(),
-                  confidence: Math.round((result.discovery!.identification_confidence ?? 0.9) * 100),
-                  selected: true,
-                  imageUrl: imageDataUrl
-                };
-                return [...prev, newDiscovery];
-              });
-            } else {
-              setPipMessage('Scanning...');
-              setPipEmotion('thinking');
-            }
-          }
-        } catch (error) {
-          console.error('Analysis error:', error);
-        } finally {
-          setIsAnalyzing(false);
+          // Add to session discoveries
+          setDiscoveredCount(prev => prev + 1);
+          setSessionDiscoveries(prev => {
+            const newDiscovery: SessionDiscovery = {
+              id: result.discovery!.id,
+              name: name,
+              timestamp: new Date(),
+              confidence: Math.round((result.discovery!.identification_confidence ?? 0.9) * 100),
+              selected: true,
+              imageUrl: imageDataUrl
+            };
+            return [...prev, newDiscovery];
+          });
+        } else {
+          setPipMessage('I am not sure what that is. Try another angle?');
+          setPipEmotion('thinking');
         }
-      }, ANALYSIS_INTERVAL);
+      }
+    } catch (error) {
+      console.error('Analysis error:', error);
+    } finally {
+      setIsAnalyzing(false);
     }
-
-    return () => clearInterval(analysisTimer);
-  }, [isRunning, isAnalyzing]);
+  };
 
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
@@ -316,28 +300,42 @@ export function LiveDiscovery({ profile: _profile, onBack, onDiscovery: _onDisco
             ))}
           </div>
 
-          {/* Play/Pause Button */}
-          <div className="flex justify-center">
-            <motion.button
+          {/* Controls Row */}
+          <div className="flex justify-center items-center gap-6 mt-4">
+            {isRunning && (
+              <motion.button
+                onClick={captureImage}
+                disabled={isAnalyzing}
+                className={`
+                      w-20 h-20 rounded-full flex items-center justify-center shadow-[0_0_30px_rgba(0,0,0,0.5)]
+                      transition-all duration-200 border-4 border-white/20
+                      bg-blue-500 hover:bg-blue-600 disabled:opacity-50
+                  `}
+                whileHover={{ scale: 1.1 }}
+                whileTap={{ scale: 0.95 }}
+              >
+                <div className="w-16 h-16 rounded-full border-2 border-white/50 flex items-center justify-center">
+                  <div className="w-12 h-12 bg-white rounded-full" />
+                </div>
+              </motion.button>
+            )}
+
+            <Button
               onClick={toggleLiveMode}
-              className={`
-                    w-20 h-20 rounded-full flex items-center justify-center shadow-[0_0_30px_rgba(0,0,0,0.5)]
-                    transition-all duration-200 border-4 border-white/20
-                    ${isRunning
-                  ? 'bg-red-500 hover:bg-red-600'
-                  : 'bg-green-500 hover:bg-green-600'
-                }
-                `}
-              whileHover={{ scale: 1.1 }}
-              whileTap={{ scale: 0.95 }}
-              animate={isRunning ? { boxShadow: "0 0 0 10px rgba(239, 68, 68, 0.2)" } : {}}
+              variant={isRunning ? "destructive" : "default"}
+              size="lg"
+              className="rounded-full px-8 py-6 font-bold shadow-[0_0_20px_rgba(0,0,0,0.3)]"
             >
               {isRunning ? (
-                <Pause className="w-8 h-8 text-white fill-current" />
+                <>
+                  <Pause className="w-5 h-5 mr-2" /> End Session
+                </>
               ) : (
-                <Play className="w-8 h-8 text-white fill-current ml-1" />
+                <>
+                  <Play className="w-5 h-5 mr-2" /> Start Exploring
+                </>
               )}
-            </motion.button>
+            </Button>
           </div>
         </div>
       </div>

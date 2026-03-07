@@ -26,9 +26,9 @@ class ResponseSynthesizer:
         response = {
             "greeting": f"Wow, {child_name}! Look what you found!",
             "identification": {
-                "name": specialist.get("common_name", "Mystery Object"),
-                "scientific_name": specialist.get("species"),
-                "facts": specialist.get("facts", [])
+                "name": specialist.get("common_name") or "Mystery Object",
+                "scientific_name": specialist.get("scientific_name") or specialist.get("species"),
+                "facts": specialist.get("facts") or []
             },
             "story": story.get("story"),
             "activity": {

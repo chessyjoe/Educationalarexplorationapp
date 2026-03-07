@@ -7,7 +7,6 @@ import { getAuth, GoogleAuthProvider } from 'firebase/auth';
 import {
     initializeAppCheck,
     ReCaptchaV3Provider,
-    CustomProvider,
     type AppCheck,
 } from 'firebase/app-check';
 
@@ -63,17 +62,12 @@ if (import.meta.env.PROD && recaptchaSiteKey) {
         isTokenAutoRefreshEnabled: true,
     });
 } else if (import.meta.env.DEV) {
-    // Development — enable debug mode (token printed to console)
-    // Add the printed token to Firebase Console → App Check → Apps → Manage debug tokens
-    (self as unknown as Record<string, unknown>).FIREBASE_APPCHECK_DEBUG_TOKEN = true;
+    // Development — enable debug mode with a consistent explicit token so you don't have to keep adding new ones.
+    // Make sure you add this token to the App Check debugging settings in Firebase Console!
+    (self as unknown as Record<string, unknown>).FIREBASE_APPCHECK_DEBUG_TOKEN = '989129f4-cf78-43f5-9c99-3465ba025eb0';
     appCheck = initializeAppCheck(app, {
-        provider: new CustomProvider({
-            getToken: async () => ({
-                token: 'debug-token',
-                expireTimeMillis: Date.now() + 3_600_000,
-            }),
-        }),
-        isTokenAutoRefreshEnabled: false,
+        provider: new ReCaptchaV3Provider(recaptchaSiteKey || '6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI'), // Fallback test key if no site key in dev
+        isTokenAutoRefreshEnabled: true,
     });
 }
 

@@ -75,15 +75,25 @@ Identify it and share interesting facts. Respond as JSON:
                     temperature=0.7
                 )
 
+            # Extract fields carefully handling varying models output
+            common_name = (
+                response.get("common_name") or 
+                response.get("commonName") or 
+                response.get("Common Name") or 
+                response.get("name") or 
+                response.get("species") or 
+                "Mystery Discovery"
+            )
+
             result = SpecialistOutput(
                 agent_name=self.name,
-                species=response.get("species"),
-                common_name=response.get("common_name"),
-                scientific_name=response.get("scientific_name"),
-                facts=response.get("facts", []),
-                habitat=response.get("habitat"),
-                conservation_status=response.get("conservation_status"),
-                identification_confidence=response.get("identification_confidence", 0.0)
+                species=response.get("species") or response.get("Species"),
+                common_name=common_name,
+                scientific_name=response.get("scientific_name") or response.get("scientificName"),
+                facts=response.get("facts") or response.get("Facts") or [],
+                habitat=response.get("habitat") or response.get("Habitat"),
+                conservation_status=response.get("conservation_status") or response.get("conservationStatus"),
+                identification_confidence=float(response.get("identification_confidence", 0.0) or 0.0)
             )
 
             return result.to_dict()

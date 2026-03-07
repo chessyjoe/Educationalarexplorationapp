@@ -70,6 +70,7 @@ class GeminiClient:
         system_instruction: Optional[str] = None,
         temperature: float = 0.7,
         max_tokens: int = 2048,
+        response_mime_type: str = "text/plain",
     ) -> str:
         """
         Generate text asynchronously.
@@ -79,6 +80,7 @@ class GeminiClient:
             system_instruction: System instruction for the model
             temperature: Sampling temperature (0.0 to 1.0)
             max_tokens: Maximum tokens to generate
+            response_mime_type: Mime type for the response
             
         Returns:
             Generated text
@@ -90,6 +92,7 @@ class GeminiClient:
         config_params = {
             'temperature': temperature,
             'max_output_tokens': max_tokens,
+            'response_mime_type': response_mime_type,
         }
         
         if system_instruction:
@@ -136,7 +139,8 @@ class GeminiClient:
         response_text = await self.generate_async(
             schema_prompt,
             system_instruction=system_instruction,
-            temperature=temperature
+            temperature=temperature,
+            response_mime_type="application/json",
         )
         
         # Parse JSON response
@@ -184,6 +188,7 @@ class GeminiClient:
         config_params: Dict[str, Any] = {
             "temperature": temperature,
             "max_output_tokens": 2048,
+            "response_mime_type": "application/json",
         }
         if system_instruction:
             config_params["system_instruction"] = system_instruction
