@@ -210,10 +210,15 @@ async def process_discovery(
                     try:
                         header, encoded = discovery.media_data.split(",", 1) if "," in discovery.media_data else ("", discovery.media_data)
                         image_bytes = base64.b64decode(encoded)
-                        
+
                         bucket = storage.bucket()
                         blob = bucket.blob(f"discoveries/{user_id}/{discovery_id}.jpg")
-                        blob.upload_from_string(image_bytes, content_type="image/jpeg")
+                        # Run blocking SDK call in executor to avoid stalling the event loop
+                        loop = asyncio.get_event_loop()
+                        await loop.run_in_executor(
+                            None,
+                            lambda: blob.upload_from_string(image_bytes, content_type="image/jpeg"),
+                        )
                         image_url = blob.public_url
                         logger.info(f"Successfully uploaded legacy base64 image for discovery {discovery_id}")
                     except Exception as upload_error:

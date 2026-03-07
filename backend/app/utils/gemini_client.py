@@ -5,7 +5,7 @@ Provides a simplified interface to Google's Gemini API using the google-genai pa
 import os
 from google import genai
 from google.genai import types
-from typing import Optional, Dict, Any, List
+from typing import Optional, Dict, Any, List, Union
 import asyncio
 import base64
 from functools import wraps
@@ -114,6 +114,61 @@ class GeminiClient:
         
         return response.text
     
+    # ------------------------------------------------------------------
+    # Schema helpers
+    # ------------------------------------------------------------------
+
+    _TYPE_MAP = {
+        "string": "STRING",
+        "number": "NUMBER",
+        "integer": "INTEGER",
+        "boolean": "BOOLEAN",
+        "array": "ARRAY",
+        "object": "OBJECT",
+    }
+
+    def _build_native_schema(self, schema_dict: Dict[str, Any]) -> types.Schema:
+        """
+        Convert a simple {"field": "type_string"} dict into a types.Schema.
+        Supports type strings like "string", "number", "boolean",
+        "array of strings", "string or null".
+        """
+        properties: Dict[str, types.Schema] = {}
+        required: List[str] = []
+
+        for field, type_str in schema_dict.items():
+            type_lower = str(type_str).lower()
+            nullable = "or null" in type_lower
+            type_lower = type_lower.replace("or null", "").strip()
+
+            if "array" in type_lower:
+                item_type = "STRING"  # default item type
+                for k, v in self._TYPE_MAP.items():
+                    if k in type_lower and k != "array":
+                        item_type = v
+                        break
+                prop = types.Schema(
+                    type=types.Type.ARRAY,
+                    items=types.Schema(type=getattr(types.Type, item_type)),
+                    nullable=nullable,
+                )
+            else:
+                mapped = self._TYPE_MAP.get(type_lower, "STRING")
+                prop = types.Schema(
+                    type=getattr(types.Type, mapped),
+                    nullable=nullable,
+                )
+
+            properties[field] = prop
+            if not nullable:
+                required.append(field)
+
+        return types.Schema(
+            type=types.Type.OBJECT,
+            properties=properties,
+            required=required if required else None,
+        )
+
     async def generate_with_schema(
         self,
         prompt: str,
@@ -122,16 +177,8 @@ class GeminiClient:
         temperature: float = 0.7,
     ) -> Dict[str, Any]:
         """
-        Generate structured output matching a schema.
-        
-        Args:
-            prompt: User prompt
-            schema: JSON schema for the output
-            system_instruction: System instruction
-            temperature: Sampling temperature
-            
-        Returns:
-            Parsed JSON response
+        Generate structured output matching a schema (legacy text-prompt approach).
+        Kept as fallback; prefer generate_with_native_schema for new code.
         """
         # Add schema to prompt
         schema_prompt = f"{prompt}\n\nRespond ONLY with valid JSON matching this schema:\n{schema}"
@@ -143,14 +190,61 @@ class GeminiClient:
             response_mime_type="application/json",
         )
         
-        # Parse JSON response
-        # Extract JSON from markdown code blocks if present
+        # Parse JSON response — strip markdown fences if present
         if "```json" in response_text:
             response_text = response_text.split("```json")[1].split("```")[0].strip()
         elif "```" in response_text:
             response_text = response_text.split("```")[1].split("```")[0].strip()
         
         return json.loads(response_text)
+
+    @async_retry(max_retries=3)
+    async def generate_with_native_schema(
+        self,
+        prompt: str,
+        schema: Dict[str, Any],
+        system_instruction: Optional[str] = None,
+        temperature: float = 0.7,
+    ) -> Dict[str, Any]:
+        """
+        Generate structured output using Gemini's native response_schema.
+        This guarantees the model outputs JSON that exactly matches the schema.
+
+        Args:
+            prompt: User prompt
+            schema: Simple {"field": "type"} dict (e.g. {"name": "string", "score": "number"})
+            system_instruction: Optional system instruction
+            temperature: Sampling temperature
+
+        Returns:
+            Parsed JSON dict guaranteed to conform to schema
+        """
+        self._ensure_initialized()
+
+        native_schema = self._build_native_schema(schema)
+
+        config_params: Dict[str, Any] = {
+            "temperature": temperature,
+            "max_output_tokens": 2048,
+            "response_mime_type": "application/json",
+            "response_schema": native_schema,
+        }
+        if system_instruction:
+            config_params["system_instruction"] = system_instruction
+
+        config = types.GenerateContentConfig(**config_params)
+
+        loop = asyncio.get_event_loop()
+        response = await loop.run_in_executor(
+            None,
+            lambda: self._client.models.generate_content(
+                model=self.model_name,
+                contents=prompt,
+                config=config,
+            ),
+        )
+
+        return json.loads(response.text)
 
     @async_retry(max_retries=3)
     async def generate_with_image(
@@ -160,6 +254,7 @@ class GeminiClient:
         schema: Dict[str, Any],
         system_instruction: Optional[str] = None,
         temperature: float = 0.7,
+        use_native_schema: bool = True,
     ) -> Dict[str, Any]:
         """
         Generate structured output from an image + text prompt.
@@ -167,9 +262,10 @@ class GeminiClient:
         Args:
             image_base64: Base64-encoded JPEG/PNG string (with or without data: prefix)
             prompt: The text prompt to send alongside the image
-            schema: JSON schema for the expected output
+            schema: Simple {"field": "type"} dict for the expected output
             system_instruction: System instruction for the model
             temperature: Sampling temperature
+            use_native_schema: If True (default) use Gemini native response_schema
 
         Returns:
             Parsed JSON response dict
@@ -180,16 +276,15 @@ class GeminiClient:
         if "," in image_base64:
             image_base64 = image_base64.split(",", 1)[1]
 
-        # Detect mime type from prefix (default jpeg)
         mime_type = "image/jpeg"
-
-        schema_prompt = f"{prompt}\n\nRespond ONLY with valid JSON matching this schema:\n{schema}"
 
         config_params: Dict[str, Any] = {
             "temperature": temperature,
             "max_output_tokens": 2048,
             "response_mime_type": "application/json",
         }
+        if use_native_schema:
+            config_params["response_schema"] = self._build_native_schema(schema)
         if system_instruction:
             config_params["system_instruction"] = system_instruction
         config = types.GenerateContentConfig(**config_params)
@@ -198,7 +293,7 @@ class GeminiClient:
             data=base64.b64decode(image_base64),
             mime_type=mime_type,
         )
-        text_part = types.Part.from_text(text=schema_prompt)
+        text_part = types.Part.from_text(text=prompt)
 
         loop = asyncio.get_event_loop()
         response = await loop.run_in_executor(
@@ -210,13 +305,7 @@ class GeminiClient:
             ),
         )
 
-        response_text = response.text
-        if "```json" in response_text:
-            response_text = response_text.split("```json")[1].split("```")[0].strip()
-        elif "```" in response_text:
-            response_text = response_text.split("```")[1].split("```")[0].strip()
-
-        return json.loads(response_text)
+        return json.loads(response.text)
 
 
 # Global client instance (lazy-initialized)

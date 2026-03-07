@@ -25,10 +25,10 @@ service cloud.firestore {
     match /users/{userId} {
       allow read: if isOwner(userId);
       allow delete: if isOwner(userId);
+      // PII (email, display_name) is managed exclusively by Firebase Auth.
+      // Only app-specific, non-identifying fields are stored here.
       allow create, update: if isOwner(userId)
-                            && (request.resource.data.keys().hasOnly(['email', 'display_name', 'role', 'children', 'created_at', 'last_active', 'preferences']))
-                            && (request.resource.data.email is string && request.resource.data.email.size() < 100)
-                            && (!('display_name' in request.resource.data) || request.resource.data.display_name == null || (request.resource.data.display_name is string && request.resource.data.display_name.size() < 100))
+                            && (request.resource.data.keys().hasOnly(['role', 'children', 'created_at', 'last_active', 'preferences']))
                             && (request.resource.data.role in ['parent', 'child', 'educator'])
                             && (!('children' in request.resource.data) || (request.resource.data.children is list && request.resource.data.children.size() <= 20))
                             && (!('preferences' in request.resource.data) || request.resource.data.preferences is map);

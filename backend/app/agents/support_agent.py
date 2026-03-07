@@ -27,6 +27,9 @@ class StorytellerAgent:
         child_name = context.get("child_profile", {}).get("name", "Explorer")
         species = specialist_data.get("common_name", "creature")
         facts = specialist_data.get("facts", [])
+        # Sanitize user-supplied strings to prevent prompt injection
+        child_name = str(child_name or "Explorer").strip()[:50]
+        species = str(species or "creature").strip()[:100]
         
         system_instruction = """You are Pip, a friendly AI companion who tells engaging stories to children aged 5-10.
 Your stories should:
@@ -37,7 +40,7 @@ Your stories should:
 - Be exciting but age-appropriate
 - End with encouragement to keep exploring"""
 
-        prompt = f"""Create a short adventure story for {child_name} about discovering a {species}.
+        prompt = f"""Create a short adventure story for <child_name>{child_name}</child_name> about discovering a {species}.
 
 Facts to weave in: {', '.join(facts[:2]) if facts else 'interesting creature'}
 
@@ -49,7 +52,7 @@ Respond as JSON:
 }}"""
 
         try:
-            response = await self.client.generate_with_schema(
+            response = await self.client.generate_with_native_schema(
                 prompt=prompt,
                 schema={
                     "story": "string",
@@ -95,6 +98,8 @@ class EducatorAgent:
         """
         species = specialist_data.get("common_name", "discovery")
         facts = specialist_data.get("facts", [])
+        # Sanitize species (comes from AI specialist, but truncate defensively)
+        species = str(species or "discovery").strip()[:100]
         
         system_instruction = """You are an elementary education expert creating activities for children aged 5-10.
 Your activities should:
@@ -117,7 +122,7 @@ Respond as JSON:
 }}"""
 
         try:
-            response = await self.client.generate_with_schema(
+            response = await self.client.generate_with_native_schema(
                 prompt=prompt,
                 schema={
                     "prompt": "string",

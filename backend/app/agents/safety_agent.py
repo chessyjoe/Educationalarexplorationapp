@@ -42,11 +42,15 @@ Always err on the side of caution when uncertain."""
             SafetyResult as dict
         """
         description = discovery_input.get("discovery_description", "")
-        
+        # Sanitize: truncate and wrap in delimiters to prevent prompt injection
+        description = str(description or "").strip()[:500]
+
         # Build prompt
         prompt = f"""Evaluate the safety of this discovery for a child:
 
-Discovery: \"\"\"{description}\"\"\"
+<user_description>
+{description}
+</user_description>
 
 Provide your assessment as JSON:
 {{
@@ -59,8 +63,8 @@ Provide your assessment as JSON:
 }}"""
         
         try:
-            # Call Gemini API
-            response = await self.client.generate_with_schema(
+            # Call Gemini API with native schema enforcement
+            response = await self.client.generate_with_native_schema(
                 prompt=prompt,
                 schema={
                     "is_dangerous": "boolean",

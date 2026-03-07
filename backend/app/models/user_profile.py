@@ -2,7 +2,7 @@
 User Profile Data Models
 Defines Pydantic models for user profiles and child profiles.
 """
-from pydantic import BaseModel, EmailStr, Field
+from pydantic import BaseModel, Field
 from typing import Optional, List
 from datetime import datetime
 from enum import Enum
@@ -45,8 +45,10 @@ class UserProfile(BaseModel):
     Complete user profile including authentication and child profiles.
     """
     user_id: str = Field(..., description="Firebase UID")
-    email: EmailStr = Field(..., description="User's email address")
-    display_name: Optional[str] = Field(None, description="User's display name")
+    # PII fields: kept in-memory for API responses but NOT persisted to Firestore.
+    # They are sourced from the decoded Firebase Auth token, not the Firestore document.
+    email: Optional[str] = Field(None, description="User's email (from Auth, not stored in Firestore)")
+    display_name: Optional[str] = Field(None, description="User's display name (from Auth, not stored in Firestore)")
     role: UserRole = Field(default=UserRole.PARENT, description="User role")
     children: List[ChildProfile] = Field(default_factory=list, description="Child profiles")
     created_at: datetime = Field(default_factory=datetime.utcnow)
@@ -56,14 +58,10 @@ class UserProfile(BaseModel):
     def to_firestore(self) -> dict:
         """
         Convert to Firestore-compatible dictionary.
-        Excludes user_id as it's stored as document ID.
-        
-        Returns:
-            Dict suitable for Firestore document
+        Excludes user_id (stored as doc ID) and PII fields (email, display_name),
+        which are managed exclusively by Firebase Auth.
         """
         return {
-            "email": self.email,
-            "display_name": self.display_name,
             "role": self.role.value,
             "children": [
                 {
@@ -83,27 +81,27 @@ class UserProfile(BaseModel):
         }
     
     @classmethod
-    def from_firestore(cls, user_id: str, data: dict) -> "UserProfile":
+    def from_firestore(
+        cls,
+        user_id: str,
+        data: dict,
+        email: Optional[str] = None,
+        display_name: Optional[str] = None,
+    ) -> "UserProfile":
         """
         Create UserProfile from Firestore document data.
-        
-        Args:
-            user_id: Firebase UID (document ID)
-            data: Firestore document data
-            
-        Returns:
-            UserProfile instance
+        PII (email, display_name) is not in the document; pass them from
+        the Firebase Auth token if needed for the API response.
         """
-        # Parse children
         children = [
             ChildProfile(**child_data)
             for child_data in data.get("children", [])
         ]
-        
+
         return cls(
             user_id=user_id,
-            email=data["email"],
-            display_name=data.get("display_name"),
+            email=email,
+            display_name=display_name,
             role=UserRole(data.get("role", "parent")),
             children=children,
             created_at=data.get("created_at", datetime.utcnow()),
@@ -137,7 +135,7 @@ class UserProfile(BaseModel):
 
 class CreateUserRequest(BaseModel):
     """Request model for creating a new user profile."""
-    email: EmailStr
+    email: Optional[str] = None
     display_name: Optional[str] = None
     role: UserRole = UserRole.PARENT
 

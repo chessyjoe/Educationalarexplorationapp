@@ -51,29 +51,32 @@ class UserRepository:
             logger.error(f"Failed to create user {user_profile.user_id}: {str(e)}")
             raise
     
-    async def get_user(self, user_id: str) -> Optional[UserProfile]:
+    async def get_user(
+        self,
+        user_id: str,
+        email: Optional[str] = None,
+        display_name: Optional[str] = None,
+    ) -> Optional[UserProfile]:
         """
         Retrieve user profile by ID.
-        
-        Args:
-            user_id: Firebase UID
-            
-        Returns:
-            UserProfile if found, None otherwise
+        Pass email and display_name from the Auth token to populate those
+        in-memory fields (they are not stored in Firestore).
         """
         try:
             doc = self.users_ref.document(user_id).get()
-            
+
             if not doc.exists:
                 logger.debug(f"User {user_id} not found")
                 return None
-            
+
             data = doc.to_dict()
-            user_profile = UserProfile.from_firestore(user_id, data)
+            user_profile = UserProfile.from_firestore(
+                user_id, data, email=email, display_name=display_name
+            )
             logger.debug(f"Retrieved user profile for {user_id}")
-            
+
             return user_profile
-            
+
         except Exception as e:
             logger.error(f"Failed to get user {user_id}: {str(e)}")
             raise
@@ -127,32 +130,23 @@ class UserRepository:
             raise
     
     async def get_or_create_user(
-        self, 
-        user_id: str, 
-        email: str, 
-        display_name: Optional[str] = None
+        self,
+        user_id: str,
+        email: Optional[str] = None,
+        display_name: Optional[str] = None,
     ) -> UserProfile:
         """
         Get existing user or create new one if doesn't exist.
-        Useful for handling first-time users.
-        
-        Args:
-            user_id: Firebase UID
-            email: User email
-            display_name: Optional display name
-            
-        Returns:
-            UserProfile instance
+        email and display_name come from Firebase Auth and are kept in-memory only.
         """
-        # Try to get existing user
-        user = await self.get_user(user_id)
-        
+        # Try to get existing user — thread Auth PII in
+        user = await self.get_user(user_id, email=email, display_name=display_name)
+
         if user is not None:
-            # User exists, update last active
             await self.update_last_active(user_id)
             return user
-        
-        # Create new user
+
+        # Create new user — do NOT include email/display_name in Firestore doc
         new_user = UserProfile(
             user_id=user_id,
             email=email,
@@ -163,7 +157,7 @@ class UserRepository:
             last_active=datetime.utcnow(),
             preferences={}
         )
-        
+
         return await self.create_user(new_user)
     
     async def update_preferences(self, user_id: str, preferences: dict) -> None:

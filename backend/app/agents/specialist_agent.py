@@ -22,6 +22,8 @@ class SpecialistAgent:
         """
         description = discovery_input.get("discovery_description", "I found something!")
         image_base64 = discovery_input.get("media_data", "")
+        # Sanitize: truncate and wrap in delimiters to prevent prompt injection
+        description = str(description or "I found something!").strip()[:500]
 
         system_instruction = f"""You are a {self.domain} expert teaching children aged 5-10 about nature.
 Your job is to identify {self.domain.lower()} and share fascinating, age-appropriate facts.
@@ -34,7 +36,7 @@ Guidelines:
 - Be enthusiastic and encouraging"""
 
         prompt = f"""A child has discovered this {self.domain.lower()}.
-{f'They described it as: \"\"\"{description}\"\"\"' if description and description != 'I found this!' else ''}
+{f'They described it as:\n<user_description>\n{description}\n</user_description>' if description and description != 'I found this!' else ''}
 
 Identify it and share interesting facts. Respond as JSON:
 {{
@@ -67,14 +69,15 @@ Identify it and share interesting facts. Respond as JSON:
                     prompt=prompt,
                     schema=schema,
                     system_instruction=system_instruction,
-                    temperature=0.7
+                    temperature=0.7,
+                    use_native_schema=True,
                 )
             else:
-                response = await self.client.generate_with_schema(
+                response = await self.client.generate_with_native_schema(
                     prompt=prompt,
                     schema=schema,
                     system_instruction=system_instruction,
-                    temperature=0.7
+                    temperature=0.7,
                 )
 
             # Extract fields carefully handling varying models output
