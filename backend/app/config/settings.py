@@ -18,9 +18,7 @@ env_path = backend_dir / ".env"
 load_dotenv(dotenv_path=env_path, override=True)
 
 # Print for debugging (remove in production)
-print(f"Loading .env from: {env_path}")
-print(f".env exists: {env_path.exists()}")
-print(f"GEMINI_API_KEY loaded: {bool(os.getenv('GEMINI_API_KEY'))}")
+# Debug prints removed for security
 
 # API Keys
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")

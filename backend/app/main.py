@@ -172,7 +172,7 @@ async def process_discovery(
         
     except Exception as e:
         logger.error(f"Discovery processing error: {str(e)}")
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail="An internal server error occurred while processing the discovery.")
 
 
 @app.get("/api/discoveries")

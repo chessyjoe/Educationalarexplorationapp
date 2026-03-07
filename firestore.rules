@@ -19,32 +19,59 @@ service cloud.firestore {
 
     // ------------------------------------------------------------------ //
     // Users collection
-    // Each user can only read/write their own profile document.
+    // Each user can only read their own profile document, and writes
+    // must conform to strict schema properties, types, and sizing.
     // ------------------------------------------------------------------ //
     match /users/{userId} {
-      allow read, write: if isOwner(userId);
+      allow read: if isOwner(userId);
+      allow delete: if isOwner(userId);
+      allow create, update: if isOwner(userId)
+                            && (request.resource.data.keys().hasOnly(['email', 'display_name', 'role', 'children', 'created_at', 'last_active', 'preferences']))
+                            && (request.resource.data.email is string && request.resource.data.email.size() < 100)
+                            && (!('display_name' in request.resource.data) || request.resource.data.display_name == null || (request.resource.data.display_name is string && request.resource.data.display_name.size() < 100))
+                            && (request.resource.data.role in ['parent', 'child', 'educator'])
+                            && (!('children' in request.resource.data) || (request.resource.data.children is list && request.resource.data.children.size() <= 20))
+                            && (!('preferences' in request.resource.data) || request.resource.data.preferences is map);
     }
 
     // ------------------------------------------------------------------ //
     // Discoveries collection
-    // Each document must carry a `userId` field that matches the caller.
+    // Each document must carry a `user_id` field that matches the caller.
     // ------------------------------------------------------------------ //
     match /discoveries/{discoveryId} {
       // Read: only the owner
       allow read: if isSignedIn()
-                  && resource.data.userId == request.auth.uid;
+                  && resource.data.user_id == request.auth.uid;
 
-      // Create: only if the caller sets their own userId on the document
+      // Create: validate ownership, fields, type lengths and sizes
       allow create: if isSignedIn()
-                    && request.resource.data.userId == request.auth.uid;
+                    && request.resource.data.user_id == request.auth.uid
+                    && request.resource.data.keys().hasAll(['user_id', 'subject_type', 'species_info', 'safety_assessment', 'story', 'learning_activities'])
+                    && request.resource.data.subject_type is string
+                    && request.resource.data.subject_type.size() < 100
+                    && request.resource.data.story is string
+                    && request.resource.data.story.size() < 5000
+                    && request.resource.data.species_info is map
+                    && request.resource.data.safety_assessment is map
+                    && request.resource.data.learning_activities is list
+                    && request.resource.data.learning_activities.size() <= 20;
 
-      // Update/Delete: only the owner, and they cannot change userId
+      // Update: validate owner, prevent changing user_id, type sizing
       allow update: if isSignedIn()
-                    && resource.data.userId == request.auth.uid
-                    && request.resource.data.userId == request.auth.uid;
+                    && resource.data.user_id == request.auth.uid
+                    && request.resource.data.user_id == request.auth.uid
+                    && request.resource.data.keys().hasAll(['user_id', 'subject_type', 'species_info', 'safety_assessment', 'story', 'learning_activities'])
+                    && request.resource.data.subject_type is string
+                    && request.resource.data.subject_type.size() < 100
+                    && request.resource.data.story is string
+                    && request.resource.data.story.size() < 5000
+                    && request.resource.data.species_info is map
+                    && request.resource.data.safety_assessment is map
+                    && request.resource.data.learning_activities is list
+                    && request.resource.data.learning_activities.size() <= 20;
 
       allow delete: if isSignedIn()
-                    && resource.data.userId == request.auth.uid;
+                    && resource.data.user_id == request.auth.uid;
     }
 
     // ------------------------------------------------------------------ //
