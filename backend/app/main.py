@@ -123,10 +123,38 @@ async def process_discovery(
         # Convert Pydantic model to dict
         input_data = discovery.model_dump()
         
-        # Process via Orchestrator
+        # 1. SECURITY CRITICAL: Pre-validate Image BEFORE hitting AI Orchestrator
+        if discovery.image_url:
+            # Prevent SSRF: Ensure URL belongs to Firebase Storage
+            allowed_prefix = "https://firebasestorage.googleapis.com/v0/b/"
+            if not discovery.image_url.startswith(allowed_prefix):
+                logger.error(f"SSRF attempt or invalid image URL domain: {discovery.image_url}")
+                raise HTTPException(status_code=400, detail="Image URL must be a valid Firebase Storage URL.")
+                
+            try:
+                async with httpx.AsyncClient() as client:
+                    resp = await client.get(discovery.image_url)
+                    resp.raise_for_status()
+                    img = Image.open(io.BytesIO(resp.content))
+                    img.verify() # Verify it is a valid image format
+                    logger.info(f"Successfully pre-validated image {discovery.image_url}")
+            except Exception as img_err:
+                logger.error(f"Invalid or corrupted image at {discovery.image_url}: {img_err}")
+                raise HTTPException(status_code=400, detail="Invalid image file provided.")
+        elif discovery.media_type == "image" and discovery.media_data:
+            try:
+                header, encoded = discovery.media_data.split(",", 1) if "," in discovery.media_data else ("", discovery.media_data)
+                image_bytes = base64.b64decode(encoded)
+                img = Image.open(io.BytesIO(image_bytes))
+                img.verify()
+            except Exception as img_err:
+                logger.error(f"Failed to pre-validate legacy base64 image: {img_err}")
+                raise HTTPException(status_code=400, detail="Invalid image or base64 data.")
+
+        # 2. Process via Orchestrator
         orchestrator_response = await orchestrator.process_discovery(input_data)
         
-        # If user is authenticated AND save is requested, save to Firestore
+        # 3. If user is authenticated AND save is requested, save to Firestore
         if token and save:
             try:
                 user_id = get_user_id(token)
@@ -139,21 +167,9 @@ async def process_discovery(
                 
                 image_url = None
                 
-                # Use provided image_url or fallback if needed
+                # Use provided image_url or execute legacy base64 upload
                 if discovery.image_url:
                     image_url = discovery.image_url
-                    
-                    # Validate image via Pillow
-                    try:
-                        async with httpx.AsyncClient() as client:
-                            resp = await client.get(image_url)
-                            resp.raise_for_status()
-                            img = Image.open(io.BytesIO(resp.content))
-                            img.verify() # Verify it is a valid image
-                            logger.info(f"Successfully validated image {image_url}")
-                    except Exception as img_err:
-                        logger.error(f"Invalid or corrupted image at {image_url}: {img_err}")
-                        raise ValueError("Invalid image file provided.")
 
                 elif discovery.media_type == "image" and discovery.media_data:
                     # Legacy fallback logic if frontend hasn't updated yet
@@ -161,14 +177,9 @@ async def process_discovery(
                         header, encoded = discovery.media_data.split(",", 1) if "," in discovery.media_data else ("", discovery.media_data)
                         image_bytes = base64.b64decode(encoded)
                         
-                        # Validate bytes directly
-                        img = Image.open(io.BytesIO(image_bytes))
-                        img.verify()
-                        
                         bucket = storage.bucket()
                         blob = bucket.blob(f"discoveries/{user_id}/{discovery_id}.jpg")
                         blob.upload_from_string(image_bytes, content_type="image/jpeg")
-                        blob.make_public()
                         image_url = blob.public_url
                         logger.info(f"Successfully uploaded legacy base64 image for discovery {discovery_id}")
                     except Exception as upload_error:
