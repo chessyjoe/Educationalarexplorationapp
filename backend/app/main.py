@@ -30,14 +30,19 @@ async def startup_event():
         logger.error(f"Failed to initialize Firebase: {str(e)}")
         # Continue running - Firebase will initialize on first use
 
+from app.config.settings import ENV
+
 # CORS configuration
 ALLOWED_ORIGINS = [
     "https://edu-explorer-9827f.web.app",
     "https://edu-explorer-9827f.firebaseapp.com",
-    # Keep localhost for local dev:
-    "http://localhost:5173",
-    "http://localhost:3000",
 ]
+
+if ENV == "development":
+    ALLOWED_ORIGINS.extend([
+        "http://localhost:5173",
+        "http://localhost:3000",
+    ])
 
 app.add_middleware(
     CORSMiddleware,

@@ -38,12 +38,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         const unsubscribe = onAuthStateChanged(auth, (user: User | null) => {
             setUser(user);
             setLoading(false);
-
-            if (user) {
-                console.log('User authenticated:', user.uid);
-            } else {
-                console.log('User signed out');
-            }
         });
 
         return () => unsubscribe();
