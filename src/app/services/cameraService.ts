@@ -73,31 +73,43 @@ export async function stopCameraStream(stream: MediaStream): Promise<void> {
   stream.getTracks().forEach(track => track.stop());
 }
 
+let sharedCanvas: HTMLCanvasElement | null = null;
+let sharedContext: CanvasRenderingContext2D | null = null;
+
 export function captureFrame(
   videoElement: HTMLVideoElement,
   width: number = 1280,
   height: number = 960,
-  quality: number = 0.9
+  quality: number = 0.8  // Optimizing default quality for Live Mode
 ): string {
-  const canvas = document.createElement('canvas');
-  canvas.width = width;
-  canvas.height = height;
+  if (!sharedCanvas) {
+    sharedCanvas = document.createElement('canvas');
+    sharedContext = sharedCanvas.getContext('2d', { willReadFrequently: true });
+  }
 
-  const context = canvas.getContext('2d');
+  sharedCanvas.width = width;
+  sharedCanvas.height = height;
+
+  const context = sharedContext;
   if (!context) {
     throw new Error('Could not get canvas context');
   }
 
+  // Ensure fresh background before drawing
+  context.clearRect(0, 0, width, height);
+
   // Mirror the image for front-facing camera
   const isFrontCamera = (videoElement as any).__facingMode === 'user';
   if (isFrontCamera) {
+    context.save();
     context.scale(-1, 1);
     context.drawImage(videoElement, -width, 0, width, height);
+    context.restore();
   } else {
     context.drawImage(videoElement, 0, 0, width, height);
   }
 
-  return canvas.toDataURL('image/jpeg', quality);
+  return sharedCanvas.toDataURL('image/jpeg', quality);
 }
 
 export async function toggleFlashlight(_enable: boolean): Promise<boolean> {
