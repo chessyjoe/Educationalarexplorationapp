@@ -42,14 +42,34 @@ class ExecutionCoordinator:
                 specialist_tasks.append(self.specialists[agent_name].analyze(discovery_input))
                 specialist_names.append(agent_name)
         
+        import logging
+        logger = logging.getLogger(__name__)
+
         if specialist_tasks:
-            specialist_results = await asyncio.gather(*specialist_tasks)
-            # Store primary specialist result (assuming one major specialist for now)
-            # In C4, we might have multiple, but efficient synthesis usually relies on one primary identification
-            if specialist_results:
-                results["Specialist"] = specialist_results[0]
-                # If multiple, we might want to merge them or store list
-                results["AllSpecialists"] = dict(zip(specialist_names, specialist_results))
+            # Handle potential failures from individual specialist agents gracefully
+            specialist_results = await asyncio.gather(*specialist_tasks, return_exceptions=True)
+            
+            # Filter out exceptions and log them
+            valid_specialist_results = []
+            for name, result in zip(specialist_names, specialist_results):
+                if isinstance(result, Exception):
+                    logger.error(f"Specialist agent '{name}' failed with error: {str(result)}")
+                elif result:
+                    valid_specialist_results.append((name, result))
+                    
+            # Store primary specialist result mapping
+            if valid_specialist_results:
+                merged_specialist = {}
+                for _, res in valid_specialist_results:
+                    if isinstance(res, dict):
+                        for key, value in res.items():
+                            if key not in merged_specialist or not merged_specialist[key]:
+                                merged_specialist[key] = value
+                            elif isinstance(merged_specialist[key], list) and isinstance(value, list):
+                                merged_specialist[key].extend(value)
+                
+                results["Specialist"] = merged_specialist
+                results["AllSpecialists"] = {name: res for name, res in valid_specialist_results}
 
         # 3. Support Agents (Parallel)
         # Using specialist output to inform support agents
@@ -66,8 +86,12 @@ class ExecutionCoordinator:
                 support_names.append("Educator")
                 
         if support_tasks:
-            support_results = await asyncio.gather(*support_tasks)
+            # Handle potential failures from individual support agents gracefully
+            support_results = await asyncio.gather(*support_tasks, return_exceptions=True)
             for name, result in zip(support_names, support_results):
-                results[name] = result
+                if isinstance(result, Exception):
+                    logger.error(f"Support agent '{name}' failed with error: {str(result)}")
+                else:
+                    results[name] = result
 
         return results
