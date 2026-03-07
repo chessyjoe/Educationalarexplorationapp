@@ -54,6 +54,7 @@ export default function App() {
 
   // React to auth user changes — load correct profile, seed from Firebase, or reset on sign-out
   useEffect(() => {
+    let mounted = true;
     if (user) {
       // Check if this user has a saved profile
       const savedProfile = loadUserProfile(user.uid);
@@ -61,22 +62,31 @@ export default function App() {
 
       if (hasOnboarded) {
         // Returning user — restore their profile
-        setProfile(savedProfile);
-        setCurrentScreen('welcome');
+        if (mounted) {
+          setProfile(savedProfile);
+          setCurrentScreen('welcome');
+        }
       } else {
         // New user to this device — seed name from Firebase displayName if available
         const seededProfile = {
           ...getDefaultProfile(),
           name: user.displayName?.split(' ')[0] || 'Explorer',
         };
-        setProfile(seededProfile);
-        setCurrentScreen('onboarding');
+        if (mounted) {
+          setProfile(seededProfile);
+          setCurrentScreen('onboarding');
+        }
       }
     } else {
       // Signed out — reset everything so next user starts fresh
-      setProfile(getDefaultProfile());
-      setCurrentScreen('onboarding');
+      if (mounted) {
+        setProfile(getDefaultProfile());
+        setCurrentScreen('onboarding');
+      }
     }
+    return () => {
+      mounted = false;
+    };
   }, [user]);
 
   // Save profile whenever it changes, scoped to the current user

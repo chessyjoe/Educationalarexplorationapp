@@ -76,7 +76,8 @@ export async function stopCameraStream(stream: MediaStream): Promise<void> {
 export function captureFrame(
   videoElement: HTMLVideoElement,
   width: number = 1280,
-  height: number = 960
+  height: number = 960,
+  quality: number = 0.9
 ): string {
   const canvas = document.createElement('canvas');
   canvas.width = width;
@@ -96,7 +97,7 @@ export function captureFrame(
     context.drawImage(videoElement, 0, 0, width, height);
   }
 
-  return canvas.toDataURL('image/jpeg', 0.9);
+  return canvas.toDataURL('image/jpeg', quality);
 }
 
 export async function toggleFlashlight(_enable: boolean): Promise<boolean> {

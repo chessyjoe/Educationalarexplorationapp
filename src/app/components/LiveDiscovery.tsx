@@ -154,7 +154,7 @@ export function LiveDiscovery({ profile: _profile, onBack, onDiscovery: _onDisco
 
     try {
       setIsAnalyzing(true);
-      const imageDataUrl = captureFrame(videoRef.current);
+      const imageDataUrl = captureFrame(videoRef.current, 640, 480, 0.6);
 
       // Analyze frame
       const result = await analyzeImage(imageDataUrl);

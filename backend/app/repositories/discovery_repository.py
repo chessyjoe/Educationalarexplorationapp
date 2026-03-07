@@ -230,8 +230,11 @@ class DiscoveryRepository:
         """
         try:
             query = self.discoveries_ref.where('user_id', '==', user_id)
-            docs = list(query.stream())
-            count = len(docs)
+            aggregate_query = query.count()
+            results = aggregate_query.get()
+            
+            # results is a list of lists of AggregationResult
+            count = results[0][0].value
             
             logger.debug(f"User {user_id} has {count} total discoveries")
             return count
