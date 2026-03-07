@@ -17,7 +17,7 @@ import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { useAuth } from '@/contexts/AuthContext';
 import { UserProfileButton } from '@/components/user/UserProfileButton';
-import { loadUserProfile, saveUserProfile, addDiscovery } from './utils/storage';
+import { loadUserProfile, saveUserProfile, addDiscovery, getDefaultProfile, getOnboardingKey, clearUserData } from './utils/storage';
 import { recognizeImage } from './services/recognitionService';
 import { discoveryAPI } from '@/services/apiService';
 import { usePWAUpdate } from './hooks/usePWAUpdate';
@@ -43,22 +43,45 @@ export default function App() {
   const { user } = useAuth();
   const [showAuthModal, setShowAuthModal] = useState(false);
 
-  const [currentScreen, setCurrentScreen] = useState<Screen>(() => {
-    // Check if user has completed onboarding
-    const hasCompletedOnboarding = localStorage.getItem('pocket_science_onboarding_complete');
-    return hasCompletedOnboarding ? 'welcome' : 'onboarding';
-  });
-  const [profile, setProfile] = useState<UserProfile>(() => loadUserProfile());
+  const [currentScreen, setCurrentScreen] = useState<Screen>('onboarding');
+  const [profile, setProfile] = useState<UserProfile>(() => getDefaultProfile());
   const [isProcessing, setIsProcessing] = useState(false);
   const [currentDiscovery, setCurrentDiscovery] = useState<Discovery | null>(null);
   const [selectedDiscovery, setSelectedDiscovery] = useState<Discovery | null>(null);
   const [sessionDiscoveries, setSessionDiscoveries] = useState<SessionDiscovery[]>([]);
 
 
-  // Save profile whenever it changes
+  // React to auth user changes — load correct profile, seed from Firebase, or reset on sign-out
   useEffect(() => {
-    saveUserProfile(profile);
-  }, [profile]);
+    if (user) {
+      // Check if this user has a saved profile
+      const savedProfile = loadUserProfile(user.uid);
+      const hasOnboarded = localStorage.getItem(getOnboardingKey(user.uid));
+
+      if (hasOnboarded) {
+        // Returning user — restore their profile
+        setProfile(savedProfile);
+        setCurrentScreen('welcome');
+      } else {
+        // New user to this device — seed name from Firebase displayName if available
+        const seededProfile = {
+          ...getDefaultProfile(),
+          name: user.displayName?.split(' ')[0] || 'Explorer',
+        };
+        setProfile(seededProfile);
+        setCurrentScreen('onboarding');
+      }
+    } else {
+      // Signed out — reset everything so next user starts fresh
+      setProfile(getDefaultProfile());
+      setCurrentScreen('onboarding');
+    }
+  }, [user]);
+
+  // Save profile whenever it changes, scoped to the current user
+  useEffect(() => {
+    saveUserProfile(profile, user?.uid);
+  }, [profile, user]);
 
   const handleStartExploring = () => {
     setCurrentScreen('camera');
@@ -245,11 +268,14 @@ export default function App() {
   };
 
   const handleClearData = () => {
-    const defaultProfile = loadUserProfile();
-    // Clear localStorage
-    localStorage.removeItem('pocket_science_user');
-    // Reset to default
-    setProfile(defaultProfile);
+    // Clear data for the current user (or legacy key if no user)
+    if (user) {
+      clearUserData(user.uid);
+    } else {
+      localStorage.removeItem('pocket_science_user');
+      localStorage.removeItem('pocket_science_onboarding_complete');
+    }
+    setProfile(getDefaultProfile());
     toast.success('All data cleared');
   };
 
@@ -262,8 +288,9 @@ export default function App() {
   const handleCompleteOnboarding = (name: string, age: number) => {
     const updatedProfile = { ...profile, name, age, boardName: `${name}'s Museum` };
     setProfile(updatedProfile);
-    saveUserProfile(updatedProfile);
-    localStorage.setItem('pocket_science_onboarding_complete', 'true');
+    saveUserProfile(updatedProfile, user?.uid);
+    // Mark onboarding complete under the correct (user-scoped or shared) key
+    localStorage.setItem(getOnboardingKey(user?.uid), 'true');
     setCurrentScreen('welcome');
     toast.success(`Welcome, ${name}! Let's start exploring!`);
   };

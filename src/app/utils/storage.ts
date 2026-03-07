@@ -1,7 +1,18 @@
 import type { UserProfile, Discovery, Badge } from '@/app/types';
 
 const STORAGE_KEY = 'pocket_science_user';
+const ONBOARDING_KEY = 'pocket_science_onboarding_complete';
 const PARENT_PIN = '1234'; // Default PIN for demo
+
+/** Returns a user-scoped localStorage key for authenticated users. */
+export function getUserStorageKey(uid: string): string {
+  return `${STORAGE_KEY}_${uid}`;
+}
+
+/** Returns a user-scoped onboarding flag key for authenticated users. */
+export function getOnboardingKey(uid?: string): string {
+  return uid ? `${ONBOARDING_KEY}_${uid}` : ONBOARDING_KEY;
+}
 
 export const defaultBadges: Badge[] = [
   {
@@ -70,9 +81,10 @@ export function getDefaultProfile(): UserProfile {
   };
 }
 
-export function loadUserProfile(): UserProfile {
+export function loadUserProfile(uid?: string): UserProfile {
+  const key = uid ? getUserStorageKey(uid) : STORAGE_KEY;
   try {
-    const stored = localStorage.getItem(STORAGE_KEY);
+    const stored = localStorage.getItem(key);
     if (stored) {
       const profile = JSON.parse(stored);
       // Convert date strings back to Date objects
@@ -88,12 +100,19 @@ export function loadUserProfile(): UserProfile {
   return getDefaultProfile();
 }
 
-export function saveUserProfile(profile: UserProfile): void {
+export function saveUserProfile(profile: UserProfile, uid?: string): void {
+  const key = uid ? getUserStorageKey(uid) : STORAGE_KEY;
   try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(profile));
+    localStorage.setItem(key, JSON.stringify(profile));
   } catch (error) {
     console.error('Error saving profile:', error);
   }
+}
+
+/** Clears all stored data for a specific authenticated user. */
+export function clearUserData(uid: string): void {
+  localStorage.removeItem(getUserStorageKey(uid));
+  localStorage.removeItem(getOnboardingKey(uid));
 }
 
 export function addDiscovery(profile: UserProfile, discovery: Discovery): UserProfile {
@@ -161,6 +180,11 @@ export function verifyParentPIN(pin: string): boolean {
   return pin === PARENT_PIN;
 }
 
-export function clearAllData(): void {
-  localStorage.removeItem(STORAGE_KEY);
+export function clearAllData(uid?: string): void {
+  if (uid) {
+    clearUserData(uid);
+  } else {
+    localStorage.removeItem(STORAGE_KEY);
+    localStorage.removeItem(ONBOARDING_KEY);
+  }
 }
