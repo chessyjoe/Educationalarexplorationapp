@@ -45,7 +45,8 @@ client = TestClient(app, raise_server_exceptions=True)
 
 # ─── Shared fixtures ──────────────────────────────────────────────────────────
 
-FAKE_IMAGE_URL = "data:image/jpeg;base64," + "A" * 12_000
+VALID_1X1_PNG = "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAACklEQVR4nGMAAQAABQABDQottAAAAABJRU5ErkJggg=="
+FAKE_IMAGE_URL = "data:image/png;base64," + VALID_1X1_PNG
 
 MINIMAL_PAYLOAD = {
     "media_type": "image",

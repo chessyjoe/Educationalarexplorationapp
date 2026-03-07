@@ -18,7 +18,7 @@ import { validateCapturedImage } from '@/app/services/recognitionService';
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
 /** A minimal valid JPEG data URL (>10 KB of padding so size check passes). */
-function makeFakeJpegDataUrl(size = 12_000): string {
+function makeFakeJpegDataUrl(size = 20_000): string {
     return 'data:image/jpeg;base64,' + 'A'.repeat(size);
 }
 
@@ -79,28 +79,28 @@ describe('captureFrame()', () => {
 // ─── validateCapturedImage() ──────────────────────────────────────────────────
 
 describe('validateCapturedImage()', () => {
-    it('rejects an empty string', () => {
-        const result = validateCapturedImage('');
+    it('rejects an empty string', async () => {
+        const result = await validateCapturedImage('');
         expect(result.valid).toBe(false);
         expect(result.error).toMatch(/no image/i);
     });
 
-    it('rejects a non-image data URL', () => {
-        const result = validateCapturedImage('data:application/pdf;base64,AAAA');
+    it('rejects a non-image data URL', async () => {
+        const result = await validateCapturedImage('data:application/pdf;base64,AAAA');
         expect(result.valid).toBe(false);
         expect(result.error).toMatch(/invalid image format/i);
     });
 
-    it('rejects an image that is too small (<10 KB)', () => {
+    it('rejects an image that is too small (<10 KB)', async () => {
         const tinyImg = 'data:image/jpeg;base64,' + 'A'.repeat(1000);
-        const result = validateCapturedImage(tinyImg);
+        const result = await validateCapturedImage(tinyImg);
         expect(result.valid).toBe(false);
-        expect(result.error).toMatch(/capture failed/i);
+        expect(result.error).toMatch(/failed or is too small/i);
     });
 
-    it('accepts a realistically-sized JPEG data URL', () => {
-        const validImg = makeFakeJpegDataUrl(12_000);
-        const result = validateCapturedImage(validImg);
+    it('accepts a realistically-sized JPEG data URL', async () => {
+        const validImg = makeFakeJpegDataUrl(20_000);
+        const result = await validateCapturedImage(validImg);
         expect(result.valid).toBe(true);
         expect(result.error).toBeUndefined();
     });

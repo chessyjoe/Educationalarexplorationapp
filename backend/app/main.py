@@ -21,6 +21,16 @@ from app.orchestrator.agent import PipOrchestrator
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+import sentry_sdk
+from app.config.settings import SENTRY_DSN
+
+if SENTRY_DSN:
+    sentry_sdk.init(
+        dsn=SENTRY_DSN,
+        traces_sample_rate=1.0,
+        profiles_sample_rate=1.0,
+    )
+
 app = FastAPI(title="Pip System API", version="0.2.0")
 
 @app.exception_handler(Exception)
@@ -61,8 +71,8 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=ALLOWED_ORIGINS,
     allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_methods=["GET", "POST", "OPTIONS", "PUT", "DELETE"],
+    allow_headers=["Content-Type", "Authorization", "Accept", "Origin"],
 )
 
 # Initialize Orchestrator
@@ -123,11 +133,17 @@ async def process_discovery(
         # Convert Pydantic model to dict
         input_data = discovery.model_dump()
         
+        if not discovery.image_url and not discovery.media_data:
+            raise HTTPException(status_code=422, detail="Either image_url or media_data must be provided.")
+            
         # 1. SECURITY CRITICAL: Pre-validate Image BEFORE hitting AI Orchestrator
         if discovery.image_url:
             # Prevent SSRF: Ensure URL belongs to Firebase Storage
-            allowed_prefix = "https://firebasestorage.googleapis.com/v0/b/"
-            if not discovery.image_url.startswith(allowed_prefix):
+            allowed_prefixes = [
+                "https://firebasestorage.googleapis.com/v0/b/edu-explorer-9827f.appspot.com/",
+                "https://firebasestorage.googleapis.com/v0/b/edu-explorer-9827f.firebasestorage.app/"
+            ]
+            if not any(discovery.image_url.startswith(prefix) for prefix in allowed_prefixes):
                 logger.error(f"SSRF attempt or invalid image URL domain: {discovery.image_url}")
                 raise HTTPException(status_code=400, detail="Image URL must be a valid Firebase Storage URL.")
                 
@@ -135,9 +151,18 @@ async def process_discovery(
                 async with httpx.AsyncClient() as client:
                     resp = await client.get(discovery.image_url)
                     resp.raise_for_status()
+
+                    # Strict file size validation (5MB max)
+                    if len(resp.content) > 5 * 1024 * 1024:
+                        raise HTTPException(status_code=400, detail="Image file too large (max 5MB).")
+
                     img = Image.open(io.BytesIO(resp.content))
+                    if img.format not in ["JPEG", "PNG", "WEBP", "MPO"]:
+                        raise HTTPException(status_code=400, detail=f"Invalid image type: {img.format}")
                     img.verify() # Verify it is a valid image format
                     logger.info(f"Successfully pre-validated image {discovery.image_url}")
+            except HTTPException:
+                raise
             except Exception as img_err:
                 logger.error(f"Invalid or corrupted image at {discovery.image_url}: {img_err}")
                 raise HTTPException(status_code=400, detail="Invalid image file provided.")
@@ -145,8 +170,17 @@ async def process_discovery(
             try:
                 header, encoded = discovery.media_data.split(",", 1) if "," in discovery.media_data else ("", discovery.media_data)
                 image_bytes = base64.b64decode(encoded)
+
+                # Strict file size validation (5MB max)
+                if len(image_bytes) > 5 * 1024 * 1024:
+                    raise HTTPException(status_code=400, detail="Image file too large (max 5MB).")
+
                 img = Image.open(io.BytesIO(image_bytes))
+                if img.format not in ["JPEG", "PNG", "WEBP", "MPO"]:
+                    raise HTTPException(status_code=400, detail=f"Invalid image type: {img.format}")
                 img.verify()
+            except HTTPException:
+                raise
             except Exception as img_err:
                 logger.error(f"Failed to pre-validate legacy base64 image: {img_err}")
                 raise HTTPException(status_code=400, detail="Invalid image or base64 data.")
@@ -222,6 +256,8 @@ async def process_discovery(
         
         return orchestrator_response
         
+    except HTTPException:
+        raise
     except Exception as e:
         logger.error(f"Discovery processing error: {str(e)}")
         raise HTTPException(status_code=500, detail="An internal server error occurred while processing the discovery.")

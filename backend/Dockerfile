@@ -5,6 +5,9 @@ WORKDIR /app
 # Create a non-root user
 RUN useradd -m appuser
 
+# Install system dependencies required by python-magic
+RUN apt-get update && apt-get install -y --no-install-recommends libmagic1 && rm -rf /var/lib/apt/lists/*
+
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 

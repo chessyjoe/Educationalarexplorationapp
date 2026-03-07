@@ -163,6 +163,10 @@ export async function validateCapturedImage(imageDataUrl: string): Promise<{ val
       return { valid: false, error: 'Captured image is empty' };
     }
 
+    if (blob.size < 10240) {
+      return { valid: false, error: 'Image capture failed or is too small' };
+    }
+
     // Over 5MB protection (5 * 1024 * 1024)
     if (blob.size > 5242880) {
       return { valid: false, error: 'Image file is too large' };

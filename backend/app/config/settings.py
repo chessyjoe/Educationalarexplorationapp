@@ -23,6 +23,7 @@ load_dotenv(dotenv_path=env_path, override=True)
 # API Keys
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
 GOOGLE_APPLICATION_CREDENTIALS = os.getenv("GOOGLE_APPLICATION_CREDENTIALS")
+SENTRY_DSN = os.getenv("SENTRY_DSN")
 
 # Firebase
 FIREBASE_PROJECT_ID = os.getenv("FIREBASE_PROJECT_ID")
