@@ -1,0 +1,19 @@
+rules_version = '2';
+
+// Craft rules based on data in your Firestore database
+// allow write: if firestore.get(
+//    /databases/(default)/documents/users/$(request.auth.uid)).data.isAdmin;
+service firebase.storage {
+  match /b/{bucket}/o {
+    match /discoveries/{userId}/{allPaths=**} {
+      // Only allow uploads by the authenticated user to their own folder
+      allow read: if request.auth != null;
+      allow write: if request.auth != null 
+                   && request.auth.uid == userId
+                   // Ensure it's an image
+                   && request.resource.contentType.matches('image/.*')
+                   // Ensure it's under 5MB (5 * 1024 * 1024 bytes)
+                   && request.resource.size < 5242880;
+    }
+  }
+}

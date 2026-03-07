@@ -1,8 +1,12 @@
-from fastapi import FastAPI, HTTPException, Depends
+from fastapi import FastAPI, HTTPException, Depends, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 from typing import Optional, Any, List
 import logging
+import io
+import httpx
+from PIL import Image
 from datetime import datetime, timedelta
 
 # Import config first to load .env file
@@ -18,6 +22,15 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 app = FastAPI(title="Pip System API", version="0.2.0")
+
+@app.exception_handler(Exception)
+async def global_exception_handler(request: Request, exc: Exception):
+    logger.error(f"Unhandled Error: {str(exc)}", exc_info=True)
+    return JSONResponse(
+        status_code=500,
+        content={"detail": "An internal server error occurred. Please try again later."}
+    )
+
 
 # Initialize Firebase on startup
 @app.on_event("startup")
@@ -80,7 +93,9 @@ class DiscoveryInput(BaseModel):
     discovery_description: Optional[str] = ""
     location_tag: Optional[str] = "backyard"
     media_type: str = "image"
-    media_data: str  # Base64 string
+    media_data: Optional[str] = None  # Legacy, keeping optional for backwards compatibility
+    image_url: Optional[str] = None
+
     timestamp: Optional[str] = None
     location: Optional[dict] = None  # {"lat": ..., "lng": ...}
 
@@ -123,21 +138,42 @@ async def process_discovery(
                 discovery_id = f"disc_{uuid.uuid4().hex}"
                 
                 image_url = None
-                if discovery.media_type == "image" and discovery.media_data:
+                
+                # Use provided image_url or fallback if needed
+                if discovery.image_url:
+                    image_url = discovery.image_url
+                    
+                    # Validate image via Pillow
                     try:
-                        # Extract base64 data (handle data:image/jpeg;base64,... prefix)
+                        async with httpx.AsyncClient() as client:
+                            resp = await client.get(image_url)
+                            resp.raise_for_status()
+                            img = Image.open(io.BytesIO(resp.content))
+                            img.verify() # Verify it is a valid image
+                            logger.info(f"Successfully validated image {image_url}")
+                    except Exception as img_err:
+                        logger.error(f"Invalid or corrupted image at {image_url}: {img_err}")
+                        raise ValueError("Invalid image file provided.")
+
+                elif discovery.media_type == "image" and discovery.media_data:
+                    # Legacy fallback logic if frontend hasn't updated yet
+                    try:
                         header, encoded = discovery.media_data.split(",", 1) if "," in discovery.media_data else ("", discovery.media_data)
                         image_bytes = base64.b64decode(encoded)
                         
-                        # Upload to Firebase Storage
+                        # Validate bytes directly
+                        img = Image.open(io.BytesIO(image_bytes))
+                        img.verify()
+                        
                         bucket = storage.bucket()
                         blob = bucket.blob(f"discoveries/{user_id}/{discovery_id}.jpg")
                         blob.upload_from_string(image_bytes, content_type="image/jpeg")
                         blob.make_public()
                         image_url = blob.public_url
-                        logger.info(f"Successfully uploaded image for discovery {discovery_id}")
+                        logger.info(f"Successfully uploaded legacy base64 image for discovery {discovery_id}")
                     except Exception as upload_error:
-                        logger.error(f"Failed to upload image to Firebase Storage: {upload_error}")
+                        logger.error(f"Failed to process legacy base64 image: {upload_error}")
+                        raise ValueError("Invalid image or base64 data.")
 
                 discovery_record = DiscoveryRecord(
                     discovery_id=discovery_id,

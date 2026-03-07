@@ -43,6 +43,7 @@ Identify it and share interesting facts. Respond as JSON:
     "scientific_name": "<scientific name if identifiable>",
     "facts": ["<fact 1>", "<fact 2>", "<fact 3>"],
     "habitat": "<where it lives>",
+    "color": "<prominent color, e.g. 'green', 'red, yellow'>",
     "conservation_status": "<if relevant>",
     "identification_confidence": <0.0 to 1.0>
 }}"""
@@ -53,6 +54,7 @@ Identify it and share interesting facts. Respond as JSON:
             "scientific_name": "string or null",
             "facts": "array of strings",
             "habitat": "string",
+            "color": "string or null",
             "conservation_status": "string or null",
             "identification_confidence": "number"
         }
@@ -93,7 +95,8 @@ Identify it and share interesting facts. Respond as JSON:
                 facts=response.get("facts") or response.get("Facts") or [],
                 habitat=response.get("habitat") or response.get("Habitat"),
                 conservation_status=response.get("conservation_status") or response.get("conservationStatus"),
-                identification_confidence=float(response.get("identification_confidence", 0.0) or 0.0)
+                identification_confidence=float(response.get("identification_confidence", 0.0) or 0.0),
+                color=response.get("color") or response.get("Color")
             )
 
             return result.to_dict()
@@ -107,7 +110,8 @@ Identify it and share interesting facts. Respond as JSON:
                 common_name="Mystery Discovery",
                 facts=["This is an interesting discovery!", "Let's learn more about it together!"],
                 habitat="Unknown",
-                identification_confidence=0.3
+                identification_confidence=0.3,
+                color="Unknown"
             ).to_dict()
 
 

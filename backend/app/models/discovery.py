@@ -61,6 +61,7 @@ class SpecialistOutput:
     habitat: Optional[str] = None
     conservation_status: Optional[str] = None
     identification_confidence: float = 0.0
+    color: Optional[str] = None
     
     def to_dict(self) -> Dict[str, Any]:
         """Convert to dictionary for JSON serialization."""
@@ -72,7 +73,8 @@ class SpecialistOutput:
             "facts": self.facts,
             "habitat": self.habitat,
             "conservation_status": self.conservation_status,
-            "identification_confidence": self.identification_confidence
+            "identification_confidence": self.identification_confidence,
+            "color": self.color
         }
 
 

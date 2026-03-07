@@ -46,7 +46,7 @@ service cloud.firestore {
       // Create: validate ownership, fields, type lengths and sizes
       allow create: if isSignedIn()
                     && request.resource.data.user_id == request.auth.uid
-                    && request.resource.data.keys().hasAll(['user_id', 'subject_type', 'species_info', 'safety_assessment', 'story', 'learning_activities'])
+                    && request.resource.data.keys().hasAll(['user_id', 'subject_type', 'species_info', 'safety_assessment', 'story', 'learning_activities', 'image_url', 'timestamp'])
                     && request.resource.data.subject_type is string
                     && request.resource.data.subject_type.size() < 100
                     && request.resource.data.story is string
@@ -54,13 +54,15 @@ service cloud.firestore {
                     && request.resource.data.species_info is map
                     && request.resource.data.safety_assessment is map
                     && request.resource.data.learning_activities is list
-                    && request.resource.data.learning_activities.size() <= 20;
+                    && request.resource.data.learning_activities.size() <= 20
+                    && (request.resource.data.image_url == null || (request.resource.data.image_url is string && request.resource.data.image_url.size() < 1000))
+                    && request.resource.data.timestamp is timestamp;
 
       // Update: validate owner, prevent changing user_id, type sizing
       allow update: if isSignedIn()
                     && resource.data.user_id == request.auth.uid
                     && request.resource.data.user_id == request.auth.uid
-                    && request.resource.data.keys().hasAll(['user_id', 'subject_type', 'species_info', 'safety_assessment', 'story', 'learning_activities'])
+                    && request.resource.data.keys().hasAll(['user_id', 'subject_type', 'species_info', 'safety_assessment', 'story', 'learning_activities', 'image_url', 'timestamp'])
                     && request.resource.data.subject_type is string
                     && request.resource.data.subject_type.size() < 100
                     && request.resource.data.story is string
@@ -68,7 +70,9 @@ service cloud.firestore {
                     && request.resource.data.species_info is map
                     && request.resource.data.safety_assessment is map
                     && request.resource.data.learning_activities is list
-                    && request.resource.data.learning_activities.size() <= 20;
+                    && request.resource.data.learning_activities.size() <= 20
+                    && (request.resource.data.image_url == null || (request.resource.data.image_url is string && request.resource.data.image_url.size() < 1000))
+                    && request.resource.data.timestamp is timestamp;
 
       allow delete: if isSignedIn()
                     && resource.data.user_id == request.auth.uid;

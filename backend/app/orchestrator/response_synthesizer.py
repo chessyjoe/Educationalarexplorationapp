@@ -23,12 +23,18 @@ class ResponseSynthesizer:
         
         child_name = context["child_profile"]["name"]
 
+        agent_name = specialist.get("agent_name", "")
+        disc_type = "flora" if agent_name == "Botanist" else "fauna" if agent_name in ["Zoologist", "Entomologist"] else "unknown"
+
         response = {
             "greeting": f"Wow, {child_name}! Look what you found!",
             "identification": {
                 "name": specialist.get("common_name") or "Mystery Object",
                 "scientific_name": specialist.get("scientific_name") or specialist.get("species"),
-                "facts": specialist.get("facts") or []
+                "facts": specialist.get("facts") or [],
+                "color": specialist.get("color") or "unknown",
+                "habitat": specialist.get("habitat") or "unknown",
+                "type": disc_type
             },
             "story": story.get("story"),
             "activity": {

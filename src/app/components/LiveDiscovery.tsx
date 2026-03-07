@@ -35,6 +35,7 @@ const MAX_SESSION_DURATION = 5 * 60; // 5 minutes in seconds
 export function LiveDiscovery({ profile: _profile, onBack, onDiscovery: _onDiscovery, onSessionComplete }: LiveDiscoveryProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const [cameraStream, setCameraStream] = useState<MediaStream | null>(null);
+  const [facingMode, setFacingMode] = useState<'environment' | 'user'>('environment');
   const [isRunning, setIsRunning] = useState(false);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [discoveredCount, setDiscoveredCount] = useState(0);
@@ -51,9 +52,8 @@ export function LiveDiscovery({ profile: _profile, onBack, onDiscovery: _onDisco
     { label: 'Streak', value: 7, icon: '🔥' }
   ]);
 
-  // Initialize camera
   useEffect(() => {
-    initializeCamera();
+    initializeCamera(facingMode);
     fetchStats();
     return () => {
       cleanupCamera();
@@ -73,7 +73,7 @@ export function LiveDiscovery({ profile: _profile, onBack, onDiscovery: _onDisco
     }
   };
 
-  const initializeCamera = async () => {
+  const initializeCamera = async (currentFacingMode: 'environment' | 'user') => {
     try {
       const permStatus = await getCameraPermissionStatus();
       if (permStatus === 'denied') {
@@ -83,7 +83,7 @@ export function LiveDiscovery({ profile: _profile, onBack, onDiscovery: _onDisco
       }
 
       if (videoRef.current) {
-        const stream = await startCameraStream(videoRef.current, 'environment');
+        const stream = await startCameraStream(videoRef.current, currentFacingMode);
         setCameraStream(stream);
       }
     } catch (error) {
@@ -91,6 +91,16 @@ export function LiveDiscovery({ profile: _profile, onBack, onDiscovery: _onDisco
       setCameraError('Could not start camera');
     }
   };
+
+  const toggleCamera = async () => {
+    if (cameraStream) {
+      await stopCameraStream(cameraStream);
+      setCameraStream(null);
+    }
+    const newMode = facingMode === 'environment' ? 'user' : 'environment';
+    setFacingMode(newMode);
+    await initializeCamera(newMode);
+  }
 
   const cleanupCamera = async () => {
     if (cameraStream) {
@@ -225,6 +235,9 @@ export function LiveDiscovery({ profile: _profile, onBack, onDiscovery: _onDisco
             <span className="text-xs text-white/80 uppercase tracking-wider font-bold">
               {isAnalyzing ? 'Analyzing...' : 'Live'}
             </span>
+            <Button variant="ghost" size="sm" onClick={toggleCamera} className="text-white hover:bg-white/20 ml-2">
+              Flip Camera
+            </Button>
           </div>
           <motion.div animate={{ rotate: 360 }} transition={{ duration: 2, repeat: Infinity }}>
             <Zap className="w-6 h-6 text-yellow-500" />

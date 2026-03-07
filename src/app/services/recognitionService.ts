@@ -1,5 +1,30 @@
 import type { Discovery, RecognitionResult } from '@/app/types';
 import { discoveryAPI } from '@/services/apiService';
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
+import { storage, auth } from '@/config/firebase';
+
+async function uploadImageToStorage(imageDataUrl: string): Promise<string | null> {
+  if (!auth.currentUser) return null;
+
+  try {
+    const res = await fetch(imageDataUrl);
+    const blob = await res.blob();
+
+    // Validate blob size here as an extra safety measure before uploading
+    if (blob.size === 0) {
+      console.warn("Attempted to upload 0 byte image.");
+      return null;
+    }
+
+    const filename = `discoveries/${auth.currentUser.uid}/img_${Date.now()}.jpg`;
+    const storageRef = ref(storage, filename);
+    await uploadBytes(storageRef, blob, { contentType: 'image/jpeg' });
+    return await getDownloadURL(storageRef);
+  } catch (error) {
+    console.error("Firebase upload failed", error);
+    return null;
+  }
+}
 
 /**
  * Analyzes a captured image from the camera for object recognition
@@ -25,17 +50,26 @@ export async function recognizeImage(
   }
 
   try {
-    // Call Pip System Backend via API Service (authenticated)
-    // save=true is default
-    const data = await discoveryAPI.create({
+    const imageUrl = await uploadImageToStorage(imageDataUrl);
+
+    const payload: any = {
       child_id: childId,
       child_name: childName,
       child_age: childAge,
       media_type: "image",
-      media_data: imageDataUrl,
       discovery_description: "I found this!",
       timestamp: new Date().toISOString()
-    });
+    };
+
+    if (imageUrl) {
+      payload.image_url = imageUrl;
+    } else {
+      payload.media_data = imageDataUrl;
+    }
+
+    // Call Pip System Backend via API Service (authenticated)
+    // save=true is default
+    const data = await discoveryAPI.create(payload);
 
     console.log("Backend Data Received:", data);
     return mapBackendResponseToResult(data, imageDataUrl);
@@ -77,9 +111,9 @@ function mapBackendResponseToResult(data: any, imageDataUrl: string): Recognitio
     name: data.identification?.name || "Mystery Object",
     scientificName: data.identification?.scientific_name,
     category: data.identification?.name ? "nature" : "unknown",
-    type: "flora", // Matches 'flora' | 'fauna' type definition
-    color: "green",
-    habitat: "garden",
+    type: data.identification?.type || "unknown",
+    color: data.identification?.color || "unknown",
+    habitat: data.identification?.habitat || "unknown",
     isDangerous: data.safety_status === "danger" || data.safety_status === "caution",
     story: typeof data.story === 'string' ? data.story : (data.story?.story || "No story available."),
     funFact: Array.isArray(data.identification?.facts) && data.identification.facts.length > 0
@@ -111,7 +145,7 @@ export async function recognizeImageBatch(
 /**
  * Validates if an image is usable for recognition
  */
-export function validateCapturedImage(imageDataUrl: string): { valid: boolean; error?: string } {
+export async function validateCapturedImage(imageDataUrl: string): Promise<{ valid: boolean; error?: string }> {
   if (!imageDataUrl) {
     return { valid: false, error: 'No image captured' };
   }
@@ -120,9 +154,21 @@ export function validateCapturedImage(imageDataUrl: string): { valid: boolean; e
     return { valid: false, error: 'Invalid image format' };
   }
 
-  // Check rough minimum size (at least 10KB of data — 640x480 JPEG produces ~30-45k chars)
-  if (imageDataUrl.length < 10000) {
-    return { valid: false, error: 'Image capture failed - please try again' };
+  try {
+    const res = await fetch(imageDataUrl);
+    const blob = await res.blob();
+
+    // Robust validation: actual blob size check
+    if (blob.size === 0) {
+      return { valid: false, error: 'Captured image is empty' };
+    }
+
+    // Over 5MB protection (5 * 1024 * 1024)
+    if (blob.size > 5242880) {
+      return { valid: false, error: 'Image file is too large' };
+    }
+  } catch (error) {
+    return { valid: false, error: 'Failed to process image' };
   }
 
   return { valid: true };

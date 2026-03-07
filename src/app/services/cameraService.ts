@@ -46,7 +46,7 @@ export async function startCameraStream(
   try {
     const stream = await navigator.mediaDevices.getUserMedia({
       video: {
-        facingMode,
+        facingMode: { exact: facingMode === 'user' ? 'user' : 'environment' },
         width: { ideal: 1920 },
         height: { ideal: 1080 }
       },
@@ -54,6 +54,8 @@ export async function startCameraStream(
     });
 
     videoElement.srcObject = stream;
+    // Keep track of the actual facing mode
+    (videoElement as any).__facingMode = facingMode;
 
     return new Promise((resolve, reject) => {
       videoElement.onloadedmetadata = () => {
@@ -97,7 +99,7 @@ export function captureFrame(
   return canvas.toDataURL('image/jpeg', 0.9);
 }
 
-export async function toggleFlashlight(enable: boolean): Promise<boolean> {
+export async function toggleFlashlight(_enable: boolean): Promise<boolean> {
   try {
     const stream = (await navigator.mediaDevices.enumerateDevices()).find(
       device => device.kind === 'videoinput'
