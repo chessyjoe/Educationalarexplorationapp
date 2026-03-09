@@ -59,6 +59,8 @@ from app.config.settings import ENV
 ALLOWED_ORIGINS = [
     "https://edu-explorer-9827f.web.app",
     "https://edu-explorer-9827f.firebaseapp.com",
+    "educationalarexplorationapp.vercel.app",
+
 ]
 
 if ENV == "development":
