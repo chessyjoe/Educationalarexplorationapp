@@ -7,11 +7,24 @@ const ASSETS_TO_CACHE = [
   '/vite.svg'
 ];
 
-// Install event - cache assets on first visit
+// Install event - cache assets on first visit.
+// Use individual cache.add() calls instead of cache.addAll() so that a single
+// resource failure (e.g. a missing icon) doesn't abort the entire SW install.
 self.addEventListener('install', event => {
   event.waitUntil(
-    caches.open(CACHE_NAME).then(cache => {
-      return cache.addAll(ASSETS_TO_CACHE);
+    caches.open(CACHE_NAME).then(async cache => {
+      const results = await Promise.allSettled(
+        ASSETS_TO_CACHE.map(url =>
+          cache.add(url).catch(err => {
+            console.warn(`[SW] Failed to cache ${url}:`, err);
+          })
+        )
+      );
+      // Log a summary so failures are visible but non-fatal
+      const failures = results.filter(r => r.status === 'rejected');
+      if (failures.length > 0) {
+        console.warn(`[SW] Install: ${failures.length} asset(s) could not be cached.`);
+      }
     })
   );
   self.skipWaiting();

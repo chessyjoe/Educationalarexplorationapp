@@ -108,6 +108,7 @@ export function AuthModal({ isOpen, onClose, defaultMode = 'login' }: AuthModalP
                                         value={formData.displayName}
                                         onChange={(e) => setFormData({ ...formData, displayName: e.target.value })}
                                         placeholder="Your name"
+                                        autoComplete="name"
                                         className="w-full pl-10 pr-4 py-3 border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-800 dark:text-white"
                                     />
                                 </div>
@@ -126,6 +127,7 @@ export function AuthModal({ isOpen, onClose, defaultMode = 'login' }: AuthModalP
                                     onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                                     placeholder="you@example.com"
                                     required
+                                    autoComplete="email"
                                     className="w-full pl-10 pr-4 py-3 border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-800 dark:text-white"
                                 />
                             </div>
@@ -144,6 +146,7 @@ export function AuthModal({ isOpen, onClose, defaultMode = 'login' }: AuthModalP
                                     placeholder="••••••••"
                                     required
                                     minLength={6}
+                                    autoComplete={mode === 'login' ? 'current-password' : 'new-password'}
                                     className="w-full pl-10 pr-4 py-3 border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-800 dark:text-white"
                                 />
                             </div>
